@@ -42,6 +42,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	AttachGraphics(pGraphics);
 
 	mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
+	mInterface.RebuildPeaks(mBuffer);
 }
 
 WaveShaper::~WaveShaper() {}

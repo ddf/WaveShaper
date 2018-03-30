@@ -8,6 +8,12 @@ class IPlugBase;
 class IGraphics;
 class IControl;
 class KnobLineCoronaControl;
+class PeaksControl;
+
+namespace Minim
+{
+	class MultiChannelBuffer;
+}
 
 class Interface
 {
@@ -20,6 +26,9 @@ public:
 	// called by the plug when a preset is loaded or saved
 	void OnPresetChanged();
 
+	// called when the plug loads a new audio file
+	void RebuildPeaks(const Minim::MultiChannelBuffer& forSamples);
+
 	// used by Controls to initiate MIDILearn functionality in the Standalone
 	static void BeginMIDILearn(IPlugBase* plug, const int paramIdx1, const int paramIdx2, const int x, const int y);
 
@@ -31,5 +40,6 @@ private:
 	PLUG_CLASS_NAME* mPlug;
 
 	IControl* mPresetControl;
+	PeaksControl* mPeaksControl;
 };
 

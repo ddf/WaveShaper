@@ -2,6 +2,7 @@
 
 #include "IControl.h"
 
+
 class KnobLineCoronaControl : public IKnobLineControl
 {
 public:
@@ -72,4 +73,25 @@ private:
 	bool  mShowParamUnits;
 	float mScrollSpeed;
 	IRECT mTextRect;
+};
+
+namespace Minim
+{
+	class MultiChannelBuffer;
+}
+
+// control that draws the peaks of a buffer but chunking it into sections
+class PeaksControl : public IPanelControl
+{
+public:
+	PeaksControl(IPlugBase* pPlug, IRECT rect, IColor backColor, IColor peaksColor);
+	~PeaksControl();
+
+	bool Draw(IGraphics* pGraphics) override;
+	void UpdatePeaks(const Minim::MultiChannelBuffer& withSamples);
+
+private:
+	float* mPeaks;
+	size_t mPeaksSize;
+	IColor mPeaksColor;
 };

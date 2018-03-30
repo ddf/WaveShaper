@@ -30,6 +30,11 @@ enum ELayout
 	kVolumeControl_H = kLargeKnobSize,
 	kVolumeControl_X = GUI_WIDTH - kVolumeControl_W - 10,
 	kVolumeControl_Y = 15,
+
+	kPeaksControl_W = 800,
+	kPeaksControl_H = 50,
+	kPeaksControl_X = GUI_WIDTH / 2 - kPeaksControl_W / 2,
+	kPeaksControl_Y = 50,
 };
 
 namespace Color
@@ -81,6 +86,7 @@ namespace Strings
 Interface::Interface(PLUG_CLASS_NAME* inPlug)
 	: mPlug(inPlug)
 	, mPresetControl(nullptr)
+	, mPeaksControl(nullptr)
 {
 }
 
@@ -88,6 +94,7 @@ Interface::~Interface()
 {
 	mPlug = nullptr;
 	mPresetControl = nullptr;
+	mPeaksControl = nullptr;
 }
 
 void Interface::CreateControls(IGraphics* pGraphics)
@@ -99,6 +106,9 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	pGraphics->AttachControl(new ITextControl(mPlug, MakeIRect(kPlugTitle), &TextStyles::Title, Strings::Title));
 
 	AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
+
+	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::EnumBackground, Color::EnumBorder);
+	pGraphics->AttachControl(mPeaksControl);
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )
@@ -162,6 +172,14 @@ void Interface::OnPresetChanged()
 	{
 		mPresetControl->SetDirty(false);
 		mPresetControl->Redraw();
+	}
+}
+
+void Interface::RebuildPeaks(const Minim::MultiChannelBuffer& forSamples)
+{
+	if (mPeaksControl != nullptr)
+	{
+		mPeaksControl->UpdatePeaks(forSamples);
 	}
 }
 

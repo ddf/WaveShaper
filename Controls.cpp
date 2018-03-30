@@ -1,6 +1,7 @@
 #include "Controls.h"
 #include "Interface.h"
 #include "Params.h"
+#include "MultiChannelBuffer.h"
 
 #pragma  region KnobLineCoronaControl
 KnobLineCoronaControl::KnobLineCoronaControl(IPlugBase* pPlug, IRECT pR, int paramIdx,
@@ -400,3 +401,70 @@ void TextBox::GrayOut(bool gray)
 	mText.mColor.A = gray ? 128 : 255;
 }
 #pragma endregion TextBox
+
+#pragma  region PeaksControl
+PeaksControl::PeaksControl(IPlugBase* pPlug, IRECT rect, IColor backColor, IColor peaksColor)
+	: IPanelControl(pPlug, rect, &backColor)
+	, mPeaksColor(peaksColor)
+	, mPeaksSize(rect.W())
+{
+	mPeaks = new float[mPeaksSize];
+	memset(mPeaks, 0, sizeof(float)*mPeaksSize);
+}
+
+PeaksControl::~PeaksControl()
+{
+	delete[] mPeaks;
+}
+
+bool PeaksControl::Draw(IGraphics* pGraphics)
+{
+	IPanelControl::Draw(pGraphics);
+
+	for (int i = 0; i < mPeaksSize; ++i)
+	{
+		int x = mRECT.L + i;
+		int ph = mRECT.H()*mPeaks[i];
+		int y1 = mRECT.MH() + ph / 2;
+		int y2 = mRECT.MH() - ph / 2;
+		pGraphics->DrawLine(&mPeaksColor, x, y1, x, y2);
+	}
+
+	return true;
+}
+
+void PeaksControl::UpdatePeaks(const Minim::MultiChannelBuffer& withSamples)
+{
+	// calculate peaks
+	const int chunkSize = withSamples.getBufferSize() / mPeaksSize;
+	const bool bStereo = withSamples.getChannelCount() == 2;
+	for (int i = 0; i < mPeaksSize; ++i)
+	{
+		float peak = 0;
+		int s = 0;
+		for (; s < chunkSize; ++s)
+		{
+			int frame = i*chunkSize + s;
+			if (frame >= withSamples.getBufferSize())
+			{
+				break;
+			}
+			float val = 0;
+			if (bStereo)
+			{
+				val = (withSamples.getChannel(0)[frame] + withSamples.getChannel(1)[frame]) / 2.f;
+			}
+			else
+			{
+				val = withSamples.getChannel(0)[frame];
+			}
+			peak += val*val;
+		}
+		peak /= s + 1;
+		mPeaks[i] = sqrtf(peak);
+	}
+
+	SetDirty(false);
+	Redraw();
+}
+#pragma  endregion PeaksControl
