@@ -9,7 +9,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>1.0.0, Copyright Damien Quartz, 2018</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.compartmental.vst.${BINARY_NAME}</string>
+	<string>net.compartmental.vst.${BINARY_NAME}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

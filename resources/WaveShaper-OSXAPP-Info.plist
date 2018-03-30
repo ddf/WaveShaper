@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>${BINARY_NAME}.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.compartmental.standalone.${BINARY_NAME}</string>
+	<string>net.compartmental.standalone.${BINARY_NAME}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
