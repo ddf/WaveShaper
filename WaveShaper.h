@@ -7,6 +7,19 @@
 
 #include "FileLoader.h"
 #include "MultiChannelBuffer.h"
+#include "Line.h"
+
+namespace Minim
+{
+	class TickRate;
+	class Multiplier;
+	class Oscil;
+	class Pan;
+	class Summer;
+	class WaveShaper;
+	class Noise;
+	class Constant;
+}
 
 /*
 
@@ -58,5 +71,23 @@ private:
 	// audio
 	FileLoader mFileLoader;
 	Minim::MultiChannelBuffer mBuffer; // contains the currently loaded audio file
-	int mReadFrame;
+	
+	Minim::Noise	   * mNoize;
+	Minim::TickRate	   * mNoizeRate;
+	Minim::Multiplier  * mNoizeAmp;
+	Minim::Oscil	   * mNoizeMod;
+	Minim::Summer	   * mNoizeSum;
+	Minim::Constant	   * mNoizeOffset;
+	Minim::WaveShaper  * mNoizeShaperLeft;
+	Minim::WaveShaper  * mNoizeShaperRight;
+	Minim::Pan		   * mPanLeft;
+	Minim::Pan		   * mPanRight;
+	Minim::Summer	   * mMainSignal;
+	Minim::Multiplier  * mMainSignalVol;
+
+	// controls
+	Minim::Line			 mRateCtrl;
+	Minim::Line		     mModCtrl;
+	Minim::Line		     mRangeCtrl;
+	Minim::Line          mShapeCtrl;
 };

@@ -65,6 +65,45 @@
       <Filter>minim</Filter>
     </ClInclude>
     <ClInclude Include="FileLoader.h" />
+    <ClInclude Include="..\minim-cpp\src\ugens\Constant.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Line.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Multiplier.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Noise.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Oscil.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Pan.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Summer.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\TickRate.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\UGen.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Waves.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\ugens\Wavetable.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\Logging.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\AudioSource.h">
+      <Filter>minim</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtAudio.cpp">
@@ -102,6 +141,42 @@
       <Filter>minim</Filter>
     </ClCompile>
     <ClCompile Include="FileLoader.cpp" />
+    <ClCompile Include="..\minim-cpp\src\ugens\Line.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Multiplier.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Noise.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Oscil.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Pan.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Summer.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\TickRate.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\UGen.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Waves.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\ugens\Wavetable.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\Logging.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\AudioSource.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WaveShaper.rc" />

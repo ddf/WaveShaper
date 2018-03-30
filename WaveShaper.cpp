@@ -4,6 +4,22 @@
 
 #include "Params.h"
 
+#include "Noise.h"
+#include "Multiplier.h"
+#include "Waves.h"
+#include "Wavetable.h"
+#include "Oscil.h"
+#include "TickRate.h"
+#include "Pan.h"
+#include "Multiplier.h"
+#include "Summer.h"
+#include "Constant.h"
+
+// this is hacky, but we can't compile the UGen source file as its own compilation unit becuase the file name is the same,
+// so we simply directly include it here.
+#include "ugens\Waveshaper.h"
+#include "ugens\Waveshaper.cpp"
+
 #if SA_API
 extern char * gINIPath;
 
@@ -11,18 +27,31 @@ static const char * kAboutBoxText = "Version " VST3_VER_STR "\nCreated by Damien
 #endif
 
 // The number of presets/programs
-const int kNumPrograms = 8;
+const int kNumPrograms = 1;
 
 // name of the section of the INI file we save midi cc mappings to
 const char * kMidiControlIni = "midicc";
 const IMidiMsg::EControlChangeMsg kUnmappedParam = (IMidiMsg::EControlChangeMsg)128;
+
+// move these to sliders at some point.
+const float kMinRate = 0.00001f;
+const float kMaxRate = 0.001f;
+const float kMinMod = 0.f;
+const float kMaxMod = 120.f;
+
+// range is the noise offset, which basically determines where in the file the center point of scrubbing is.
+const float kMinRange = -1.f; // 0.01;
+const float kMaxRange = 1.0f; // 0.5f;
+
+// shape is the mapAmplitude, which basically determines how many samples from the source are scrubbed over
+const float kMinShape = 0.05f;
+const float kMaxShape = 0.35f;
 
 WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
 	, mInterface(this)
 	, mVolume(1.)
 	, mMidiLearnParamIdx(-1)
-	, mReadFrame(0)
 {
 	TRACE;
 
@@ -43,9 +72,89 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 
 	mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
 	mInterface.RebuildPeaks(mBuffer);
+
+	const float startRate = 0.0005f;
+	mNoizeRate = new Minim::TickRate(startRate);
+	mNoizeRate->setInterpolation(true);
+
+	mRateCtrl.activate(0.f, startRate, startRate);
+	mRateCtrl.patch(mNoizeRate->value);
+
+	mNoize = new Minim::Noise(1.0f, Minim::Noise::eTintWhite);
+	mNoize->setTint(Minim::Noise::eTintPink);
+
+	//		const float startRange = 0.05f;
+	//		mRangeCtrl.activate( 0.f, startRange, startRange );
+	//		mRangeCtrl.patch( mNoize->offset );
+
+	mNoizeAmp = new Minim::Multiplier(1.f);
+
+	const int   channelCount = mBuffer.getChannelCount();
+	mNoizeShaperLeft = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(mBuffer.getChannel(0), mBuffer.getBufferSize()), true);
+	mNoizeShaperRight = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(channelCount == 2 ? mBuffer.getChannel(1) : mBuffer.getChannel(0), mBuffer.getBufferSize()), true);
+
+	const float startingShape(0.1f);
+	mShapeCtrl.activate(0.f, startingShape, startingShape);
+	//		mShapeCtrl.patch( mNoizeShaperLeft->mapAmplitude );
+	//		mShapeCtrl.patch( mNoizeShaperRight->mapAmplitude );
+
+	mPanLeft = new Minim::Pan(-1.f);
+	mPanRight = new Minim::Pan(1.f);
+
+	const float startingMod(0.5f);
+	mNoizeMod = new Minim::Oscil(startingMod, 1.f, Minim::Waves::SINE());
+	// mNoizeMod->offset.setLastValue( 1.f );
+	// set phase at 0.25 so that when we "pause" the modulation, it will output 1.0
+	mNoizeMod->phase.setLastValue(0.25f);
+
+	mModCtrl.activate(0.f, startingMod, startingMod);
+	mModCtrl.patch(mNoizeMod->frequency);
+
+	mShapeCtrl.patch(mNoizeMod->amplitude);
+
+	mNoizeMod->patch(mNoizeAmp->amplitude);
+
+	mNoizeSum = new Minim::Summer();
+
+	mNoizeOffset = new Minim::Constant(0.f);
+	const float startRange = 0.f;
+	mRangeCtrl.activate(0.f, startRange, startRange);
+	mRangeCtrl.patch(mNoizeOffset->value);
+	mNoizeOffset->patch(*mNoizeSum);
+
+	// noise generator
+	mNoize->patch(*mNoizeRate).patch(*mNoizeAmp).patch(*mNoizeSum);
+
+	// left shaper
+	mNoizeSum->patch(*mNoizeShaperLeft).patch(*mPanLeft);
+	// right right
+	mNoizeSum->patch(*mNoizeShaperRight).patch(*mPanRight);
+
+	mMainSignal = new Minim::Summer();
+	mMainSignalVol = new Minim::Multiplier(0.f);
+
+	mPanLeft->patch(*mMainSignal);
+	mPanRight->patch(*mMainSignal);
+
+	mMainSignal->patch(*mMainSignalVol);
+	mMainSignalVol->setAudioChannelCount(2);
 }
 
-WaveShaper::~WaveShaper() {}
+WaveShaper::~WaveShaper() 
+{
+	delete mNoize;
+	delete mNoizeRate;
+	delete mNoizeAmp;
+	delete mNoizeSum;
+	delete mNoizeOffset;
+	delete mNoizeShaperLeft;
+	delete mNoizeShaperRight;
+	delete mPanLeft;
+	delete mPanRight;
+	delete mNoizeMod;
+	delete mMainSignal;
+	delete mMainSignalVol;
+}
 
 void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames)
 {
@@ -85,21 +194,11 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 			mMidiQueue.Remove();
 		}
 
-		result[0] = result[1] = 0;
+		mMainSignalVol->amplitude.setLastValue(mVolume);
+		mMainSignalVol->tick(result, 2);
 
-		if (mBuffer.getBufferSize() > mReadFrame)
-		{
-			result[0] = mBuffer.getSample(0, mReadFrame);
-			if (mBuffer.getChannelCount() > 1)
-			{
-				result[1] = mBuffer.getSample(1, mReadFrame);
-			}
-		}
-
-		*out1 = result[0] * mVolume;
-		*out2 = result[1] * mVolume;
-
-		mReadFrame++;
+		*out1 = result[0];
+		*out2 = result[1];
 	}
 }
 
@@ -110,6 +209,8 @@ void WaveShaper::Reset()
 
 	mMidiQueue.Clear();
 	mMidiQueue.Resize(GetBlockSize());
+
+	mMainSignalVol->setSampleRate(GetSampleRate());
 
 	// read control mappings from the INI if we are running standalone
 #if SA_API
