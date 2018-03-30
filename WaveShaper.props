@@ -11,7 +11,7 @@
     <DEBUG_DEFS>_DEBUG;</DEBUG_DEFS>
     <RELEASE_DEFS>NDEBUG;</RELEASE_DEFS>
     <TRACER_DEFS>TRACER_BUILD;NDEBUG;</TRACER_DEFS>
-    <ADDITIONAL_INCLUDES>$(ProjectDir);$(ProjectDir)\src;$(ProjectDir)\..\minim-cpp\src;$(ProjectDir)\..\minim-cpp\src\ugens;$(ProjectDir)\..\minim-cpp\src\interfaces;</ADDITIONAL_INCLUDES>
+    <ADDITIONAL_INCLUDES>$(ProjectDir);$(ProjectDir)\..\minim-cpp\src;$(ProjectDir)\..\minim-cpp\src\ugens;$(ProjectDir)\..\minim-cpp\src\interfaces;</ADDITIONAL_INCLUDES>
     <APP_INCLUDES>..\..\ASIO_SDK;..\..\WDL\rtaudiomidi;</APP_INCLUDES>
     <APP_LIBS>dsound.lib;winmm.lib;Comctl32.lib;</APP_LIBS>
     <VST3_INCLUDES>..\..\VST3_SDK;</VST3_INCLUDES>
@@ -28,10 +28,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ADDITIONAL_INCLUDES);..\..\WDL;..\..\WDL\lice;..\..\WDL\IPlug</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ADDITIONAL_INCLUDES);..\..\WDL;..\..\WDL\lice;..\..\WDL\IPlug;$(VcpkgRoot)..\$(VcpkgTriplet)-static\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>IPlug.lib;lice.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(VcpkgRoot)..\$(VcpkgTriplet)-static\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>IPlug.lib;lice.lib;libsndfile.lib;flac++.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

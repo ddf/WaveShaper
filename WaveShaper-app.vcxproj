@@ -275,8 +275,10 @@
     <ClInclude Include="..\..\WDL\rtaudiomidi\RtAudio.h" />
     <ClInclude Include="..\..\WDL\rtaudiomidi\RtError.h" />
     <ClInclude Include="..\..\WDL\rtaudiomidi\RtMidi.h" />
+    <ClInclude Include="..\minim-cpp\src\MultiChannelBuffer.h" />
     <ClInclude Include="app_wrapper\app_main.h" />
     <ClInclude Include="app_wrapper\app_resource.h" />
+    <ClInclude Include="FileLoader.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="WaveShaper.h" />
     <ClInclude Include="Controls.h" />
@@ -290,9 +292,11 @@
     <ClCompile Include="..\..\WDL\IPlug\IPlugStandalone.cpp" />
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtAudio.cpp" />
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtMidi.cpp" />
+    <ClCompile Include="..\minim-cpp\src\MultiChannelBuffer.cpp" />
     <ClCompile Include="app_wrapper\app_dialog.cpp" />
     <ClCompile Include="app_wrapper\app_main.cpp" />
     <ClCompile Include="Controls.cpp" />
+    <ClCompile Include="FileLoader.cpp" />
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="WaveShaper.cpp" />
   </ItemGroup>

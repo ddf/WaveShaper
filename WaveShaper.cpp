@@ -22,6 +22,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	, mInterface(this)
 	, mVolume(1.)
 	, mMidiLearnParamIdx(-1)
+	, mReadFrame(0)
 {
 	TRACE;
 
@@ -39,6 +40,8 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	IGraphics* pGraphics = MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT);
 	mInterface.CreateControls(pGraphics);
 	AttachGraphics(pGraphics);
+
+	mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
 }
 
 WaveShaper::~WaveShaper() {}
@@ -52,6 +55,7 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 	double* out1 = outputs[0];
 	double* out2 = outputs[1];
 
+	float result[2];
 	for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2)
 	{
 		while (!mMidiQueue.Empty())
@@ -80,8 +84,21 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 			mMidiQueue.Remove();
 		}
 
-		*out1 = *in1 * mVolume;
-		*out2 = *in2 * mVolume;
+		result[0] = result[1] = 0;
+
+		if (mBuffer.getBufferSize() > mReadFrame)
+		{
+			result[0] = mBuffer.getSample(0, mReadFrame);
+			if (mBuffer.getChannelCount() > 1)
+			{
+				result[1] = mBuffer.getSample(1, mReadFrame);
+			}
+		}
+
+		*out1 = result[0] * mVolume;
+		*out2 = result[1] * mVolume;
+
+		mReadFrame++;
 	}
 }
 
@@ -304,6 +321,7 @@ void WaveShaper::BroadcastParamChange(const int paramIdx)
 		SendMidiMsg(&msg);
 	}
 }
+
 
 bool WaveShaper::HostRequestingAboutBox()
 {

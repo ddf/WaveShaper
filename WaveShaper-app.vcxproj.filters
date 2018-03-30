@@ -13,6 +13,9 @@
     <Filter Include="interface">
       <UniqueIdentifier>{b57ac17d-2232-48ab-8293-bbdb5611a139}</UniqueIdentifier>
     </Filter>
+    <Filter Include="minim">
+      <UniqueIdentifier>{69cba556-6214-467a-9eac-4b645705dde7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\WDL\rtaudiomidi\RtAudio.h">
@@ -58,6 +61,10 @@
     <ClInclude Include="Controls.h">
       <Filter>interface</Filter>
     </ClInclude>
+    <ClInclude Include="..\minim-cpp\src\MultiChannelBuffer.h">
+      <Filter>minim</Filter>
+    </ClInclude>
+    <ClInclude Include="FileLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtAudio.cpp">
@@ -91,6 +98,10 @@
     <ClCompile Include="Controls.cpp">
       <Filter>interface</Filter>
     </ClCompile>
+    <ClCompile Include="..\minim-cpp\src\MultiChannelBuffer.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
+    <ClCompile Include="FileLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WaveShaper.rc" />

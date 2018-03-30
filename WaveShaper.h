@@ -5,6 +5,9 @@
 #include "Interface.h"
 #include "IMidiQueue.h"
 
+#include "FileLoader.h"
+#include "MultiChannelBuffer.h"
+
 /*
 
  WaveShaper - an IPlug project template that includes controls and features typically used in Damien Quartz's IPlugs.
@@ -51,4 +54,9 @@ private:
 	IMidiQueue mMidiQueue;
 	IMidiMsg::EControlChangeMsg mControlChangeForParam[kNumParams];
 	int mMidiLearnParamIdx;
+
+	// audio
+	FileLoader mFileLoader;
+	Minim::MultiChannelBuffer mBuffer; // contains the currently loaded audio file
+	int mReadFrame;
 };

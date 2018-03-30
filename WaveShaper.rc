@@ -1,6 +1,6 @@
 #include "resource.h"
 
-//KNOB_ID       PNG KNOB_FN
+SND_01_ID WAVE SND_01_FN
 
 #ifdef SA_API
 //Standalone stuff
