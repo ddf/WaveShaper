@@ -104,6 +104,7 @@
     <ClInclude Include="..\minim-cpp\src\AudioSource.h">
       <Filter>minim</Filter>
     </ClInclude>
+    <ClInclude Include="Interp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtAudio.cpp">

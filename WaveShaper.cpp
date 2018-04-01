@@ -424,7 +424,6 @@ void WaveShaper::BroadcastParamChange(const int paramIdx)
 	}
 }
 
-
 bool WaveShaper::HostRequestingAboutBox()
 {
 #if SA_API
@@ -439,4 +438,30 @@ bool WaveShaper::HostRequestingAboutBox()
 	return true;
 #endif
 	return false;
+}
+
+float WaveShaper::GetNoiseOffset() const
+{
+	return mNoizeOffset->value.getLastValue();
+}
+
+float WaveShaper::GetNoiseRate() const
+{
+	return mNoizeRate->getLastValues()[0];
+}
+
+float WaveShaper::GetShape() const 
+{
+	return mShapeCtrl.getLastValues()[0];
+}
+
+
+float WaveShaper::GetShaperSize() const
+{
+	return mNoizeShaperLeft->getWavetable().size();
+}
+
+float WaveShaper::GetShaperMapValue() const 
+{
+	return mNoizeShaperLeft->getLastMapValue();
 }

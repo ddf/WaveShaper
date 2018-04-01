@@ -1,7 +1,9 @@
 #include "Controls.h"
 #include "Interface.h"
+#include "WaveShaper.h"
 #include "Params.h"
 #include "MultiChannelBuffer.h"
+#include "Interp.h"
 
 #pragma  region KnobLineCoronaControl
 KnobLineCoronaControl::KnobLineCoronaControl(IPlugBase* pPlug, IRECT pR, int paramIdx,
@@ -468,3 +470,59 @@ void PeaksControl::UpdatePeaks(const Minim::MultiChannelBuffer& withSamples)
 	Redraw();
 }
 #pragma  endregion PeaksControl
+
+#pragma  region ShaperVizControl
+ShaperVizControl::ShaperVizControl(IPlugBase* pPlug, IRECT rect, IColor bracketColor, IColor lineColor)
+	: IControl(pPlug, rect)
+	, mBracketColor(bracketColor)
+	, mLineColor(lineColor)
+{
+
+}
+
+bool ShaperVizControl::Draw(IGraphics* pGraphics)
+{
+	WaveShaper* shaper = dynamic_cast<WaveShaper*>(mPlug);
+	if (shaper != nullptr)
+	{
+		const float center = Map(shaper->GetNoiseOffset(), -1, 1, mRECT.L, mRECT.R);
+		const float widthPct = shaper->GetShape();
+		const float waveWidth = mRECT.W();
+		const float shaperSize = shaper->GetShaperSize();
+		const float sampleWidth = (shaperSize * widthPct);
+		const float chunkSize = shaperSize / mRECT.W();
+		const float halfWidth = sampleWidth / chunkSize * 0.5f;
+
+		float x = center - halfWidth;
+		int y1 = mRECT.T, y2 = mRECT.B - 1;
+		if (x < mRECT.L)
+		{
+			x += waveWidth;
+		}
+		pGraphics->DrawLine(&mBracketColor, x, y1, x, y2);
+		pGraphics->DrawLine(&mBracketColor, x, y1, x + 4, y1);
+		pGraphics->DrawLine(&mBracketColor, x, y2, x + 4, y2);
+
+		x = center + halfWidth;
+		if (x > mRECT.R)
+		{
+			x -= waveWidth;
+		}
+		pGraphics->DrawLine(&mBracketColor, x, y1, x, y2);
+		pGraphics->DrawLine(&mBracketColor, x, y1, x - 4, y1);
+		pGraphics->DrawLine(&mBracketColor, x, y2, x - 4, y2);
+
+		// this will be [0, 1]
+		const float mapLookup = shaper->GetShaperMapValue();
+		x = Lerp(mRECT.L, mRECT.R, mapLookup);
+		pGraphics->DrawLine(&mLineColor, x, y1, x, y2);
+		
+		Redraw();
+		return true;
+	}
+
+	return false;
+}
+
+
+#pragma  endregion ShaperVizControl

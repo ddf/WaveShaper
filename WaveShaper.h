@@ -51,6 +51,13 @@ public:
 	// our additions
 	void BeginMIDILearn(int param1, int param2, int x, int y);
 
+	// getters used by UI classes to draw things
+	float GetNoiseOffset() const;
+	float GetNoiseRate() const;
+	float GetShape() const;
+	float GetShaperSize() const;
+	float GetShaperMapValue() const;
+
 private:
 
 	void HandleMidiControlChange(IMidiMsg* pMsg);

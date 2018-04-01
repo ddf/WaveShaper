@@ -50,6 +50,12 @@ namespace Color
 	const IColor EnumBorder = KnobLine;
 
 	const IColor Title(255, 30, 30, 30);
+
+	const IColor PeaksForeground(255, 100, 100, 100);
+	const IColor PeaksBackground(255, 20, 20, 20);
+
+	const IColor ShaperBracket(255, 192, 0, 0);
+	const IColor ShaperLine(255, 0, 255, 0);
 }
 
 namespace TextStyles
@@ -107,8 +113,9 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
 	AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
 
-	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::EnumBackground, Color::EnumBorder);
+	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
 	pGraphics->AttachControl(mPeaksControl);
+	pGraphics->AttachControl(new ShaperVizControl(mPlug, MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )

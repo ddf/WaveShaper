@@ -293,6 +293,7 @@
     <ClInclude Include="app_wrapper\app_resource.h" />
     <ClInclude Include="FileLoader.h" />
     <ClInclude Include="Interface.h" />
+    <ClInclude Include="Interp.h" />
     <ClInclude Include="WaveShaper.h" />
     <ClInclude Include="Controls.h" />
     <ClInclude Include="Params.h" />

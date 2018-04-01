@@ -80,7 +80,7 @@ namespace Minim
 	class MultiChannelBuffer;
 }
 
-// control that draws the peaks of a buffer but chunking it into sections
+// control that draws the peaks of a buffer by chunking it into sections
 class PeaksControl : public IPanelControl
 {
 public:
@@ -94,4 +94,17 @@ private:
 	float* mPeaks;
 	size_t mPeaksSize;
 	IColor mPeaksColor;
+};
+
+// visualization of the section of the loaded file that is being scrubbed over
+class ShaperVizControl : public IControl
+{
+public:
+	ShaperVizControl(IPlugBase* pPlug, IRECT rect, IColor bracketColor, IColor lineColor);
+
+	bool Draw(IGraphics* pGraphics) override;
+
+private:
+	IColor mBracketColor;
+	IColor mLineColor;
 };
