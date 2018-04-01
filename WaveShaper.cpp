@@ -34,10 +34,13 @@ const char * kMidiControlIni = "midicc";
 const IMidiMsg::EControlChangeMsg kUnmappedParam = (IMidiMsg::EControlChangeMsg)128;
 
 // move these to sliders at some point.
-const float kMinRate = 0.00001f;
-const float kMaxRate = 0.001f;
-const float kMinMod = 0.f;
-const float kMaxMod = 120.f;
+const double kDefaultMod = 0.5;
+const double kMinMod = 0.;
+const double kMaxMod = 120.;
+
+const double kDefaultRate = 0.0005;
+const double kMinRate = 0.00001f;
+const double kMaxRate = 0.001f;
 
 // range is the noise offset, which basically determines where in the file the center point of scrubbing is.
 const float kMinRange = -1.f; // 0.01;
@@ -65,6 +68,9 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	//arguments are: name, defaultVal, minVal, maxVal, step, label
 	GetParam(kVolume)->InitDouble("Volume", kVolumeDefault, kVolumeMin, kVolumeMax, 0.1, "dB");
 	GetParam(kVolume)->SetDisplayText((double)kVolumeMin, "-inf");
+
+	GetParam(kNoiseAmpMod)->InitDouble("Noise Amp Mod", kDefaultMod, kMinMod, kMaxMod, 0.1, "Hz", "", 2.0);
+	GetParam(kNoiseRate)->InitDouble("Noise Rate", kDefaultRate, kMinRate, kMaxRate, kMinRate);
 
 	IGraphics* pGraphics = MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT);
 	mInterface.CreateControls(pGraphics);
@@ -101,13 +107,12 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mPanLeft = new Minim::Pan(-1.f);
 	mPanRight = new Minim::Pan(1.f);
 
-	const float startingMod(0.5f);
-	mNoizeMod = new Minim::Oscil(startingMod, 1.f, Minim::Waves::SINE());
+	mNoizeMod = new Minim::Oscil(kDefaultMod, 1.f, Minim::Waves::SINE());
 	// mNoizeMod->offset.setLastValue( 1.f );
 	// set phase at 0.25 so that when we "pause" the modulation, it will output 1.0
 	mNoizeMod->phase.setLastValue(0.25f);
 
-	mModCtrl.activate(0.f, startingMod, startingMod);
+	mModCtrl.activate(0.f, kDefaultMod, kDefaultMod);
 	mModCtrl.patch(mNoizeMod->frequency);
 
 	mShapeCtrl.patch(mNoizeMod->amplitude);
@@ -236,6 +241,15 @@ void WaveShaper::OnParamChange(int paramIdx)
 	case kVolume:
 		mVolume = param->Value() == kVolumeMin ? 0 : param->DBToAmp();
 		break;
+
+	case kNoiseAmpMod:
+		mModCtrl.activate(0.01f, mModCtrl.getAmp(), param->Value());
+		break;
+
+	case kNoiseRate:
+		mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), param->Value());
+		break;
+
 	default:
 		break;
 	}

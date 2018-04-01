@@ -108,3 +108,26 @@ private:
 	IColor mBracketColor;
 	IColor mLineColor;
 };
+
+// control that displays a single control UI in a rectangle that controls two params - one on the x-axis, the other on the y-axis.
+class XYControl : public IControl
+{
+public:
+	XYControl(IPlugBase* pPlug, IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
+
+	bool Draw(IGraphics* pGraphics) override;
+	
+	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+	void OnMouseUp(int x, int y, IMouseMod* pMod) override;
+	void OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMod) override;
+
+
+	void SetAuxParamValueFromPlug(int auxParamIdx, double value) override;
+
+private:
+	// where the point current is.
+	int mPointX, mPointY;
+	int mPointRadius;
+	IColor mPointColor;
+	bool   mGribbed;
+};

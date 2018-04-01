@@ -35,6 +35,11 @@ enum ELayout
 	kPeaksControl_H = 50,
 	kPeaksControl_X = GUI_WIDTH / 2 - kPeaksControl_W / 2,
 	kPeaksControl_Y = 50,
+
+	kControlSurface_W = 800,
+	kControlSurface_H = 600,
+	kControlSurface_X = GUI_WIDTH / 2 - kControlSurface_W / 2,
+	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H,
 };
 
 namespace Color
@@ -56,6 +61,9 @@ namespace Color
 
 	const IColor ShaperBracket(255, 192, 0, 0);
 	const IColor ShaperLine(255, 0, 255, 0);
+
+	const IColor ControlSurfaceBackground(255, 60, 60, 60);
+	const IColor ControlPointA(255, 123, 123, 0);
 }
 
 namespace TextStyles
@@ -116,6 +124,10 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
 	pGraphics->AttachControl(mPeaksControl);
 	pGraphics->AttachControl(new ShaperVizControl(mPlug, MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
+
+	IRECT controlRect = MakeIRect(kControlSurface);
+	pGraphics->AttachControl(new IPanelControl(mPlug, controlRect, &Color::ControlSurfaceBackground));
+	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, 50, Color::ControlPointA));
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )

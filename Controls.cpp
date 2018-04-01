@@ -526,3 +526,64 @@ bool ShaperVizControl::Draw(IGraphics* pGraphics)
 
 
 #pragma  endregion ShaperVizControl
+
+#pragma  region XYControl
+XYControl::XYControl(IPlugBase* pPlug, IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor)
+	: IControl(pPlug, rect)
+	, mPointRadius(pointRadius)
+	, mPointColor(pointColor)
+	, mGribbed(false)
+	, mPointX(0)
+	, mPointY(0)
+{
+	AddAuxParam(paramX);
+	AddAuxParam(paramY);
+}
+
+bool XYControl::Draw(IGraphics* pGraphics)
+{	
+	return pGraphics->FillCircle(&mPointColor, mPointX, mPointY, mPointRadius, 0, true);
+}
+
+void XYControl::OnMouseDown(int x, int y, IMouseMod* pMod)
+{
+	IRECT point = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
+	mGribbed = point.Contains(x, y);
+}
+
+void XYControl::OnMouseUp(int x, int y, IMouseMod* pMod)
+{
+	mGribbed = false;
+}
+
+void XYControl::OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMod)
+{
+	if (mGribbed)
+	{
+		mPointX = BOUNDED(mPointX + dX, mRECT.L, mRECT.R);
+		mPointY = BOUNDED(mPointY + dY, mRECT.T, mRECT.B);
+
+		GetAuxParam(0)->mValue = Map(mPointX, mRECT.L, mRECT.R, 0, 1);
+		GetAuxParam(1)->mValue = Map(mPointY, mRECT.B, mRECT.T, 0, 1);
+		SetAllAuxParamsFromGUI();
+		SetDirty(false);
+	}
+}
+
+void XYControl::SetAuxParamValueFromPlug(int auxParamIdx, double value)
+{
+	IControl::SetAuxParamValueFromPlug(auxParamIdx, value);
+
+	if (auxParamIdx == 0)
+	{
+		mPointX = Map(value, 0, 1, mRECT.L, mRECT.R);
+	}
+	else if (auxParamIdx == 1)
+	{
+		mPointY = Map(value, 0, 1, mRECT.B, mRECT.T);
+	}
+
+	SetDirty(false);
+}
+
+#pragma  endregion XYControl

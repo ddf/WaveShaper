@@ -4,6 +4,9 @@ enum EParams
 {
 	kVolume,
 
+	kNoiseAmpMod,
+	kNoiseRate,
+
 	kNumParams,
 };
 
