@@ -64,6 +64,7 @@ namespace Color
 
 	const IColor ControlSurfaceBackground(255, 60, 60, 60);
 	const IColor ControlPointA(255, 123, 123, 0);
+	const IColor ControlPointB(255, 0, 123, 123);
 }
 
 namespace TextStyles
@@ -128,6 +129,7 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	IRECT controlRect = MakeIRect(kControlSurface);
 	pGraphics->AttachControl(new IPanelControl(mPlug, controlRect, &Color::ControlSurfaceBackground));
 	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, 50, Color::ControlPointA));
+	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseRange, kNoiseShape, 50, Color::ControlPointB));
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )

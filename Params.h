@@ -6,6 +6,8 @@ enum EParams
 
 	kNoiseAmpMod,
 	kNoiseRate,
+	kNoiseRange,
+	kNoiseShape,
 
 	kNumParams,
 };

@@ -43,12 +43,14 @@ const double kMinRate = 0.00001f;
 const double kMaxRate = 0.001f;
 
 // range is the noise offset, which basically determines where in the file the center point of scrubbing is.
-const float kMinRange = -1.f; // 0.01;
-const float kMaxRange = 1.0f; // 0.5f;
+const double kDefaultRange = 0;
+const double kMinRange = -1.; // 0.01;
+const double kMaxRange = 1.0; // 0.5f;
 
 // shape is the mapAmplitude, which basically determines how many samples from the source are scrubbed over
-const float kMinShape = 0.05f;
-const float kMaxShape = 0.35f;
+const double kDefaultShape = 0.1;
+const double kMinShape = 0.05;
+const double kMaxShape = 0.35;
 
 WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
@@ -71,6 +73,8 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 
 	GetParam(kNoiseAmpMod)->InitDouble("Noise Amp Mod", kDefaultMod, kMinMod, kMaxMod, 0.1, "Hz", "", 2.0);
 	GetParam(kNoiseRate)->InitDouble("Noise Rate", kDefaultRate, kMinRate, kMaxRate, kMinRate);
+	GetParam(kNoiseRange)->InitDouble("Noise Range", kDefaultRange, kMinRange, kMaxRange, 0.01);
+	GetParam(kNoiseShape)->InitDouble("Noise Shape", kDefaultShape, kMinShape, kMaxShape, 0.01);
 
 	IGraphics* pGraphics = MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT);
 	mInterface.CreateControls(pGraphics);
@@ -79,11 +83,10 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
 	mInterface.RebuildPeaks(mBuffer);
 
-	const float startRate = 0.0005f;
-	mNoizeRate = new Minim::TickRate(startRate);
+	mNoizeRate = new Minim::TickRate(kDefaultRate);
 	mNoizeRate->setInterpolation(true);
 
-	mRateCtrl.activate(0.f, startRate, startRate);
+	mRateCtrl.activate(0.f, kDefaultRate, kDefaultRate);
 	mRateCtrl.patch(mNoizeRate->value);
 
 	mNoize = new Minim::Noise(1.0f, Minim::Noise::eTintWhite);
@@ -248,6 +251,14 @@ void WaveShaper::OnParamChange(int paramIdx)
 
 	case kNoiseRate:
 		mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), param->Value());
+		break;
+
+	case kNoiseRange:
+		mRangeCtrl.activate(0.1f, mRangeCtrl.getAmp(), param->Value());
+		break;
+
+	case kNoiseShape:
+		mShapeCtrl.activate(0.1f, mShapeCtrl.getAmp(), param->Value());
 		break;
 
 	default:

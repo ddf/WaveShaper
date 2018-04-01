@@ -547,8 +547,7 @@ bool XYControl::Draw(IGraphics* pGraphics)
 
 void XYControl::OnMouseDown(int x, int y, IMouseMod* pMod)
 {
-	IRECT point = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
-	mGribbed = point.Contains(x, y);
+	mGribbed = mRECT.Contains(x, y);
 }
 
 void XYControl::OnMouseUp(int x, int y, IMouseMod* pMod)
@@ -562,6 +561,8 @@ void XYControl::OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMod)
 	{
 		mPointX = BOUNDED(mPointX + dX, mRECT.L, mRECT.R);
 		mPointY = BOUNDED(mPointY + dY, mRECT.T, mRECT.B);
+
+		mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
 		GetAuxParam(0)->mValue = Map(mPointX, mRECT.L, mRECT.R, 0, 1);
 		GetAuxParam(1)->mValue = Map(mPointY, mRECT.B, mRECT.T, 0, 1);
@@ -582,6 +583,8 @@ void XYControl::SetAuxParamValueFromPlug(int auxParamIdx, double value)
 	{
 		mPointY = Map(value, 0, 1, mRECT.B, mRECT.T);
 	}
+
+	mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
 	SetDirty(false);
 }
