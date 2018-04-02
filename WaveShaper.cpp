@@ -56,6 +56,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
 	, mInterface(this)
 	, mVolume(1.)
+	, mNoiseTint(Minim::Noise::eTintPink)
 	, mMidiLearnParamIdx(-1)
 {
 	TRACE;
@@ -70,6 +71,11 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	//arguments are: name, defaultVal, minVal, maxVal, step, label
 	GetParam(kVolume)->InitDouble("Volume", kVolumeDefault, kVolumeMin, kVolumeMax, 0.1, "dB");
 	GetParam(kVolume)->SetDisplayText((double)kVolumeMin, "-inf");
+
+	GetParam(kNoiseType)->InitEnum("Noise Type", NT_Pink, NT_Count);
+	GetParam(kNoiseType)->SetDisplayText(0, "White");
+	GetParam(kNoiseType)->SetDisplayText(1, "Pink");
+	GetParam(kNoiseType)->SetDisplayText(2, "Red");
 
 	GetParam(kNoiseAmpMod)->InitDouble("Noise Amp Mod", kDefaultMod, kMinMod, kMaxMod, 0.1, "Hz", "", 2.0);
 	GetParam(kNoiseRate)->InitDouble("Noise Rate", kDefaultRate, kMinRate, kMaxRate, kMinRate);
@@ -89,8 +95,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mRateCtrl.activate(0.f, kDefaultRate, kDefaultRate);
 	mRateCtrl.patch(mNoizeRate->value);
 
-	mNoize = new Minim::Noise(1.0f, Minim::Noise::eTintWhite);
-	mNoize->setTint(Minim::Noise::eTintPink);
+	mNoize = new Minim::Noise(1.0f, mNoiseTint);
 
 	//		const float startRange = 0.05f;
 	//		mRangeCtrl.activate( 0.f, startRange, startRange );
@@ -202,6 +207,7 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 			mMidiQueue.Remove();
 		}
 
+		mNoize->setTint(mNoiseTint);
 		mMainSignalVol->amplitude.setLastValue(mVolume);
 		mMainSignalVol->tick(result, 2);
 
@@ -243,6 +249,15 @@ void WaveShaper::OnParamChange(int paramIdx)
 	{
 	case kVolume:
 		mVolume = param->Value() == kVolumeMin ? 0 : param->DBToAmp();
+		break;
+
+	case kNoiseType:
+		switch (param->Int())
+		{
+		case NT_White: mNoiseTint = Minim::Noise::eTintWhite; break;
+		case NT_Pink:  mNoiseTint = Minim::Noise::eTintPink;  break;
+		case NT_Brown: mNoiseTint = Minim::Noise::eTintBrown; break;
+		}
 		break;
 
 	case kNoiseAmpMod:

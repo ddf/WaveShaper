@@ -31,15 +31,20 @@ enum ELayout
 	kVolumeControl_X = GUI_WIDTH - kVolumeControl_W - 10,
 	kVolumeControl_Y = 15,
 
-	kPeaksControl_W = 800,
+	kPeaksControl_W = 500,
 	kPeaksControl_H = 50,
 	kPeaksControl_X = GUI_WIDTH / 2 - kPeaksControl_W / 2,
 	kPeaksControl_Y = 50,
 
-	kControlSurface_W = 800,
-	kControlSurface_H = 600,
+	kControlSurface_W = 500,
+	kControlSurface_H = 500,
 	kControlSurface_X = GUI_WIDTH / 2 - kControlSurface_W / 2,
 	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H,
+
+	kNoiseTypeControl_W = 100,
+	kNoiseTypeControl_H = kEnumHeight,
+	kNoiseTypeControl_X = kPeaksControl_X - kNoiseTypeControl_W - 10,
+	kNoiseTypeControl_Y = kPeaksControl_Y,
 };
 
 namespace Color
@@ -121,6 +126,8 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	pGraphics->AttachControl(new ITextControl(mPlug, MakeIRect(kPlugTitle), &TextStyles::Title, Strings::Title));
 
 	AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
+
+	pGraphics->AttachControl(new EnumControl(mPlug, MakeIRect(kNoiseTypeControl), kNoiseType, &TextStyles::Enum));
 
 	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
 	pGraphics->AttachControl(mPeaksControl);

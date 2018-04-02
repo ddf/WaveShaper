@@ -4,10 +4,11 @@ enum EParams
 {
 	kVolume,
 
+	kNoiseType,
 	kNoiseAmpMod,
 	kNoiseRate,
 	kNoiseRange,
-	kNoiseShape,
+	kNoiseShape,	
 
 	kNumParams,
 };
@@ -18,4 +19,13 @@ enum EParamSettings
 	kVolumeMin = -48,
 	kVolumeMax = 12,
 	kVolumeDefault = 0,
+};
+
+enum ENoiseType
+{
+	NT_White,
+	NT_Pink,
+	NT_Brown,
+
+	NT_Count,
 };

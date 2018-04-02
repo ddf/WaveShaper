@@ -8,6 +8,7 @@
 #include "FileLoader.h"
 #include "MultiChannelBuffer.h"
 #include "Line.h"
+#include "Noise.h"
 
 namespace Minim
 {
@@ -17,7 +18,6 @@ namespace Minim
 	class Pan;
 	class Summer;
 	class WaveShaper;
-	class Noise;
 	class Constant;
 }
 
@@ -78,6 +78,7 @@ private:
 	// audio
 	FileLoader mFileLoader;
 	Minim::MultiChannelBuffer mBuffer; // contains the currently loaded audio file
+	Minim::Noise::Tint   mNoiseTint;
 	
 	Minim::Noise	   * mNoize;
 	Minim::TickRate	   * mNoizeRate;
