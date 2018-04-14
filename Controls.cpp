@@ -590,3 +590,66 @@ void XYControl::SetAuxParamValueFromPlug(int auxParamIdx, double value)
 }
 
 #pragma  endregion XYControl
+
+#pragma  region SnapshotControl
+
+SnapshotControl::SnapshotControl(IPlugBase* pPlug, IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB)
+	: IControl(pPlug, rect, snapshotParam)
+	, mSnapshotIdx(snapshotIdx)
+	, mPointRadius(pointRadius)
+	, mBackgroundColor(backgroundColor)
+	, mPointColorA(pointColorA)
+	, mPointColorB(pointColorB)
+	, mHighlight(0)
+{
+
+}
+
+bool SnapshotControl::Draw(IGraphics* pGraphics)
+{
+	pGraphics->FillIRect(&mBackgroundColor, &mRECT);
+
+	WaveShaper* shaper = dynamic_cast<WaveShaper*>(mPlug);
+	if (shaper != nullptr)
+	{
+		WaveShaper::NoiseSnapshot snapshot = shaper->GetNoiseSnapshotNormalized(mSnapshotIdx);
+		
+		float x = ::Lerp(mRECT.L, mRECT.R, snapshot.AmpMod);
+		float y = ::Lerp(mRECT.B, mRECT.T, snapshot.Rate);
+		pGraphics->FillCircle(&mPointColorA, x, y, mPointRadius, 0, true);
+		
+		x = ::Lerp(mRECT.L, mRECT.R, snapshot.Range);
+		y = ::Lerp(mRECT.B, mRECT.T, snapshot.Shape);
+		pGraphics->FillCircle(&mPointColorB, x, y, mPointRadius, 0, true);
+	}
+
+	if (mHighlight > 0)
+	{
+		IChannelBlend blend(IChannelBlend::kBlendNone, mHighlight);
+		pGraphics->FillIRect(&COLOR_WHITE, &mRECT, &blend);
+		mHighlight -= 0.1f;
+		Redraw();
+	}
+
+	return true;
+}
+
+void SnapshotControl::OnMouseDown(int x, int y, IMouseMod* pMod)
+{
+	if (pMod->R)
+	{
+		WaveShaper* shaper = dynamic_cast<WaveShaper*>(mPlug);
+		if (shaper != nullptr)
+		{
+			shaper->UpdateNoiseSnapshot(mSnapshotIdx);
+		}
+	}
+
+	mValue = GetParam()->GetNormalized(mSnapshotIdx);
+	mHighlight = 1;
+	SetDirty();
+}
+
+#pragma  endregion
+
+

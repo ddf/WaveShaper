@@ -15,6 +15,7 @@ enum ELayout
 	kButtonHeight = 15,
 	kLargeKnobSize = 30,
 	kSmallKnobSize = 20,
+	kControlPointSize = 30,
 
 	kPlugTitle_W = 200,
 	kPlugTitle_H = 15,
@@ -40,6 +41,14 @@ enum ELayout
 	kControlSurface_H = 500,
 	kControlSurface_X = GUI_WIDTH / 2 - kControlSurface_W / 2,
 	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H,
+
+	kControlSnapshot_S = 5,
+	kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 10,
+	kControlSnapshot_Y = kControlSurface_Y,
+	kControlSnapshot_H = (kControlSurface_H - kControlSnapshot_S * kNoiseSnapshotMax) / kNoiseSnapshotCount,
+	kControlSnapshot_W = kControlSnapshot_H,
+	kControlSnapshot_R = 3,
+
 
 	kNoiseTypeControl_W = 100,
 	kNoiseTypeControl_H = kEnumHeight,
@@ -135,8 +144,14 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
 	IRECT controlRect = MakeIRect(kControlSurface);
 	pGraphics->AttachControl(new IPanelControl(mPlug, controlRect, &Color::ControlSurfaceBackground));
-	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, 50, Color::ControlPointA));
-	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseRange, kNoiseShape, 50, Color::ControlPointB));
+	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
+	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
+
+	for(int i = 0; i < kNoiseSnapshotCount; ++i)
+	{
+		int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
+		pGraphics->AttachControl(new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, i, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB));
+	}
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )

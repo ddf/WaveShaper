@@ -3,6 +3,7 @@
 #include "resource.h"
 
 #include "Params.h"
+#include "Interp.h"
 
 #include "Noise.h"
 #include "Multiplier.h"
@@ -67,6 +68,14 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 		mControlChangeForParam[i] = kUnmappedParam;
 	}
 
+	for (int i = 0; i < kNoiseSnapshotCount; ++i)
+	{
+		mNoiseSnapshots[i].AmpMod = kDefaultMod;
+		mNoiseSnapshots[i].Range = kDefaultRange;
+		mNoiseSnapshots[i].Rate = kDefaultRate;
+		mNoiseSnapshots[i].Shape = kDefaultShape;
+	}
+
 	// Define parameter ranges, display units, labels.
 	//arguments are: name, defaultVal, minVal, maxVal, step, label
 	GetParam(kVolume)->InitDouble("Volume", kVolumeDefault, kVolumeMin, kVolumeMax, 0.1, "dB");
@@ -81,6 +90,11 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	GetParam(kNoiseRate)->InitDouble("Noise Rate", kDefaultRate, kMinRate, kMaxRate, kMinRate);
 	GetParam(kNoiseRange)->InitDouble("Noise Range", kDefaultRange, kMinRange, kMaxRange, 0.01);
 	GetParam(kNoiseShape)->InitDouble("Noise Shape", kDefaultShape, kMinShape, kMaxShape, 0.01);
+
+	GetParam(kNoiseSnapshot)->InitDouble("Noise Snapshot", kNoiseSnapshotDefault, kNoiseSnapshotMin, kNoiseSnapshotMax, 0.01);
+	// when this parameter changes, Noise Amp Mod, Noise Rate, Noise Range, and Noise Shape are all changed
+	// by lerping between the values in two Noise Snapshots.
+	GetParam(kNoiseSnapshot)->SetIsMeta(true);
 
 	IGraphics* pGraphics = MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT);
 	mInterface.CreateControls(pGraphics);
@@ -107,8 +121,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mNoizeShaperLeft = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(mBuffer.getChannel(0), mBuffer.getBufferSize()), true);
 	mNoizeShaperRight = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(channelCount == 2 ? mBuffer.getChannel(1) : mBuffer.getChannel(0), mBuffer.getBufferSize()), true);
 
-	const float startingShape(0.1f);
-	mShapeCtrl.activate(0.f, startingShape, startingShape);
+	mShapeCtrl.activate(0.f, kDefaultShape, kDefaultShape);
 	//		mShapeCtrl.patch( mNoizeShaperLeft->mapAmplitude );
 	//		mShapeCtrl.patch( mNoizeShaperRight->mapAmplitude );
 
@@ -276,6 +289,19 @@ void WaveShaper::OnParamChange(int paramIdx)
 		mShapeCtrl.activate(0.1f, mShapeCtrl.getAmp(), param->Value());
 		break;
 
+	case kNoiseSnapshot:
+	{
+		int first = (int)param->Value();		
+		float blend = param->Value() - first;
+		const NoiseSnapshot& firstSnap = GetNoiseSnapshot(first);
+		const NoiseSnapshot& secondSnap = first < kNoiseSnapshotMax ? GetNoiseSnapshot(first + 1) : GetNoiseSnapshot(first);
+		SetParamBlend(kNoiseAmpMod, firstSnap.AmpMod, secondSnap.AmpMod, blend);
+		SetParamBlend(kNoiseRange, firstSnap.Range, secondSnap.Range, blend);
+		SetParamBlend(kNoiseRate, firstSnap.Rate, secondSnap.Rate, blend);
+		SetParamBlend(kNoiseShape, firstSnap.Shape, secondSnap.Shape, blend);
+	}
+	break;
+
 	default:
 		break;
 	}
@@ -283,11 +309,40 @@ void WaveShaper::OnParamChange(int paramIdx)
 	BroadcastParamChange(paramIdx);
 }
 
+void WaveShaper::SetParamBlend(int paramIdx, double begin, double end, double blend)
+{
+	BeginInformHostOfParamChange(paramIdx);
+	double value = Lerp(begin, end, blend);
+	GetParam(paramIdx)->Set(value);
+	value = GetParam(paramIdx)->GetNormalized(value);
+	InformHostOfParamChange(paramIdx, value);
+	EndInformHostOfParamChange(paramIdx);
+	
+	GetGUI()->SetParameterFromPlug(paramIdx, value, true);
+
+	// kick of the actual changes and get the change broadcasted
+	OnParamChange(paramIdx);
+}
+
+static const int kStateVersion = 1;
+
 // this over-ridden method is called when the host is trying to store the plug-in state and needs to get the current data from your algorithm
 bool WaveShaper::SerializeState(ByteChunk* pChunk)
 {
 	TRACE;
 	IMutexLock lock(this);
+
+	pChunk->Put(&kStateVersion);
+
+	int snapshotCount = kNoiseSnapshotCount;
+	pChunk->Put(&snapshotCount);
+	for (int i = 0; i < snapshotCount; ++i)
+	{
+		pChunk->Put(&mNoiseSnapshots[i].AmpMod);
+		pChunk->Put(&mNoiseSnapshots[i].Range);
+		pChunk->Put(&mNoiseSnapshots[i].Rate);
+		pChunk->Put(&mNoiseSnapshots[i].Shape);
+	}
 
 	return IPlugBase::SerializeParams(pChunk); // must remember to call SerializeParams at the end
 }
@@ -297,6 +352,19 @@ int WaveShaper::UnserializeState(ByteChunk* pChunk, int startPos)
 {
 	TRACE;
 	IMutexLock lock(this);
+
+	int version = 0;
+	startPos = pChunk->Get(&version, startPos);
+
+	int snapshotCount;
+	startPos = pChunk->Get(&snapshotCount, startPos);
+	for (int i = 0; i < snapshotCount; ++i)
+	{
+		startPos = pChunk->Get(&mNoiseSnapshots[i].AmpMod, startPos);
+		startPos = pChunk->Get(&mNoiseSnapshots[i].Range, startPos);
+		startPos = pChunk->Get(&mNoiseSnapshots[i].Rate, startPos);
+		startPos = pChunk->Get(&mNoiseSnapshots[i].Shape, startPos);
+	}
 
 	return IPlugBase::UnserializeParams(pChunk, startPos); // must remember to call UnserializeParams at the end
 }
@@ -504,4 +572,25 @@ float WaveShaper::GetShaperSize() const
 float WaveShaper::GetShaperMapValue() const 
 {
 	return mNoizeShaperLeft->getLastMapValue();
+}
+
+void WaveShaper::UpdateNoiseSnapshot(int idx)
+{
+	mNoiseSnapshots[idx].AmpMod = GetParam(kNoiseAmpMod)->Value();
+	mNoiseSnapshots[idx].Range = GetParam(kNoiseRange)->Value();
+	mNoiseSnapshots[idx].Rate = GetParam(kNoiseRate)->Value();
+	mNoiseSnapshots[idx].Shape = GetParam(kNoiseShape)->Value();
+}
+
+WaveShaper::NoiseSnapshot WaveShaper::GetNoiseSnapshotNormalized(int idx)
+{
+	const NoiseSnapshot& snapshot = GetNoiseSnapshot(idx);
+	
+	NoiseSnapshot normalized;
+	normalized.AmpMod = GetParam(kNoiseAmpMod)->GetNormalized(snapshot.AmpMod);
+	normalized.Range = GetParam(kNoiseRange)->GetNormalized(snapshot.Range);
+	normalized.Rate = GetParam(kNoiseRate)->GetNormalized(snapshot.Rate);
+	normalized.Shape = GetParam(kNoiseShape)->GetNormalized(snapshot.Shape);
+
+	return normalized;
 }

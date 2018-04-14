@@ -58,8 +58,27 @@ public:
 	float GetShaperSize() const;
 	float GetShaperMapValue() const;
 
+	struct NoiseSnapshot
+	{
+		double AmpMod;
+		double Rate;
+		double Range;
+		double Shape;
+	};
+
+	void UpdateNoiseSnapshot(int idx);
+
+	const NoiseSnapshot& GetNoiseSnapshot(int idx) const 
+	{
+		return mNoiseSnapshots[idx];
+	}
+
+	// converted the requested snapshot to normalized values before returning
+	NoiseSnapshot GetNoiseSnapshotNormalized(int idx);
+
 private:
 
+	void SetParamBlend(int paramIdx, double begin, double end, double blend);
 	void HandleMidiControlChange(IMidiMsg* pMsg);
 	void SetControlChangeForParam(const IMidiMsg::EControlChangeMsg cc, const int paramIdx);
 	// helper to send Midi Messages when a midi-mapped parameter changes
@@ -69,6 +88,8 @@ private:
 
 	// params
 	double mVolume;
+
+	NoiseSnapshot mNoiseSnapshots[kNoiseSnapshotCount];
 
 	// midi
 	IMidiQueue mMidiQueue;

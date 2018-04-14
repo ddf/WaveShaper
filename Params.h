@@ -8,7 +8,10 @@ enum EParams
 	kNoiseAmpMod,
 	kNoiseRate,
 	kNoiseRange,
-	kNoiseShape,	
+	kNoiseShape,
+
+	// parameter for automating the scrub between saved Noise Snapshots
+	kNoiseSnapshot,
 
 	kNumParams,
 };
@@ -19,6 +22,11 @@ enum EParamSettings
 	kVolumeMin = -48,
 	kVolumeMax = 12,
 	kVolumeDefault = 0,
+
+	kNoiseSnapshotMin = 0,
+	kNoiseSnapshotMax = 7,
+	kNoiseSnapshotCount,
+	kNoiseSnapshotDefault = 0,
 };
 
 enum ENoiseType

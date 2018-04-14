@@ -131,3 +131,21 @@ private:
 	IColor mPointColor;
 	bool   mGribbed;
 };
+
+class SnapshotControl : public IControl
+{
+public:
+	SnapshotControl(IPlugBase* pPlug, IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB);
+
+	bool Draw(IGraphics* pGraphics) override;
+
+	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+
+private:
+	int mSnapshotIdx;
+	int mPointRadius;
+	float  mHighlight;
+	IColor mBackgroundColor;
+	IColor mPointColorA;
+	IColor mPointColorB;
+};
