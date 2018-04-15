@@ -1,6 +1,5 @@
 #include "IPlugOSDetect.h"
 #include "FileLoader.h"
-#include "sndfile.h"
 
 #ifdef OS_WIN
 #include <windows.h>
@@ -94,31 +93,7 @@ void FileLoader::Load(int resourceID, const char * resourceName, Minim::MultiCha
 
 	if (file != NULL)
 	{
-		const sf_count_t fileSize = fileInfo.channels*fileInfo.frames;
-		if (mBufferSize < fileSize)
-		{
-			if (mBuffer != nullptr)
-			{
-				delete[] mBuffer;
-			}
-			mBuffer = new float[fileSize];
-		}
-		// read in the whole thing
-		sf_count_t framesRead = sf_readf_float(file, mBuffer, fileInfo.frames);
-
-		outBuffer.setChannelCount(fileInfo.channels);
-		outBuffer.setBufferSize(framesRead);
-		// and now we should be able to de-interleave our read buffer into buffer
-		for (int c = 0; c < fileInfo.channels; ++c)
-		{
-			float * channel = outBuffer.getChannel(c);
-			for (int i = 0; i < framesRead; ++i)
-			{
-				const int offset = (i * fileInfo.channels) + c;
-				const float sample = mBuffer[offset];
-				channel[i] = sample;
-			}
-		}
+		ReadFile(fileInfo, file, outBuffer);
 	}
 
 	sf_close(file);
@@ -126,4 +101,47 @@ void FileLoader::Load(int resourceID, const char * resourceName, Minim::MultiCha
 	::FreeResource(myResourceData);
 #else
 #endif
+}
+
+void FileLoader::Load(const char * fileName, Minim::MultiChannelBuffer& outBuffer)
+{
+	SF_INFO fileInfo;
+	fileInfo.format = 0;
+	SNDFILE* file = sf_open(fileName, SFM_READ, &fileInfo);
+
+	if ( file != NULL )
+	{
+		ReadFile(fileInfo, file, outBuffer);
+	}
+
+	sf_close(file);
+}
+
+void FileLoader::ReadFile(SF_INFO& fileInfo, SNDFILE* file, Minim::MultiChannelBuffer& outBuffer)
+{
+	const sf_count_t fileSize = fileInfo.channels*fileInfo.frames;
+	if (mBufferSize < fileSize)
+	{
+		if (mBuffer != nullptr)
+		{
+			delete[] mBuffer;
+		}
+		mBuffer = new float[fileSize];
+	}
+	// read in the whole thing
+	sf_count_t framesRead = sf_readf_float(file, mBuffer, fileInfo.frames);
+
+	outBuffer.setChannelCount(fileInfo.channels);
+	outBuffer.setBufferSize(framesRead);
+	// and now we should be able to de-interleave our read buffer into buffer
+	for (int c = 0; c < fileInfo.channels; ++c)
+	{
+		float * channel = outBuffer.getChannel(c);
+		for (int i = 0; i < framesRead; ++i)
+		{
+			const int offset = (i * fileInfo.channels) + c;
+			const float sample = mBuffer[offset];
+			channel[i] = sample;
+		}
+	}
 }

@@ -75,6 +75,37 @@ private:
 	IRECT mTextRect;
 };
 
+// based on IContactControl, but without the need for a bitmap
+class BangControl : public IControl
+{
+public:
+	enum Action
+	{
+		ActionBangParam,
+		ActionLoad, // by default will load fxp files only, specify fileTypes to handle different files
+		ActionSave, // by default will save fxp files only, specify fileTypes to save to different files
+		ActionDumpPreset,
+	};
+
+	BangControl(IPlugBase* pPlug, IRECT iRect, Action action, IColor onColor, IColor offColor, IText* textStyle = nullptr, const char * label = nullptr, int paramIdx = -1, const char * fileTypes = "fxp");
+
+	bool Draw(IGraphics* pGraphics) override;
+
+	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+	void OnMouseUp(int x, int y, IMouseMod* pMod) override;
+
+
+
+private:
+	const Action mAction;
+	const char * mLabel;
+	IColor mOnColor;
+	IColor mOffColor;
+	// used as argument to PromptForFile with actions that deal with files
+	const char * mFileTypes;
+};
+
+
 namespace Minim
 {
 	class MultiChannelBuffer;
@@ -103,6 +134,12 @@ public:
 	ShaperVizControl(IPlugBase* pPlug, IRECT rect, IColor bracketColor, IColor lineColor);
 
 	bool Draw(IGraphics* pGraphics) override;
+
+
+	virtual void OnMouseUp(int x, int y, IMouseMod* pMod) override;
+
+
+	virtual void OnMouseOver(int x, int y, IMouseMod* pMod) override;
 
 private:
 	IColor mBracketColor;

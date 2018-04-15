@@ -41,7 +41,7 @@ enum ELayout
 	kControlSurface_W = 500,
 	kControlSurface_H = 500,
 	kControlSurface_X = kPeaksControl_X, // GUI_WIDTH / 2 - kControlSurface_W / 2,
-	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H,
+	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H + 10,
 
 	kControlSnapshot_S = 5,
 	kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 10,
@@ -50,6 +50,10 @@ enum ELayout
 	kControlSnapshot_W = kControlSnapshot_H,
 	kControlSnapshot_R = 3,
 
+	kLoadAudioControl_X = kControlSnapshot_X,
+	kLoadAudioControl_Y = kPeaksControl_Y,
+	kLoadAudioControl_W = kControlSnapshot_W,
+	kLoadAudioControl_H = kEnumHeight,
 
 	kNoiseTypeControl_W = 100,
 	kNoiseTypeControl_H = kEnumHeight,
@@ -69,10 +73,13 @@ namespace Color
 	const IColor EnumBackground(255, 125, 125, 125);
 	const IColor EnumBorder = KnobLine;
 
+	const IColor BangOn(255, 200, 200, 200);
+	const IColor BangOff(EnumBackground);
+
 	const IColor Title(255, 30, 30, 30);
 
 	const IColor PeaksForeground(255, 100, 100, 100);
-	const IColor PeaksBackground(255, 20, 20, 20);
+	const IColor PeaksBackground(255, 60, 60, 60);
 
 	const IColor ShaperBracket(255, 192, 0, 0);
 	const IColor ShaperLine(255, 0, 255, 0);
@@ -114,6 +121,9 @@ namespace Strings
 	const char * Title = PLUG_NAME " " VST3_VER_STR;
 	const char * PresetsLabel = "Presets";
 	const char * VolumeLabel = "Volume";
+
+	const char * LoadAudioLabel = "Load...";
+	const char * AudioFileTypes = "wav au snd aif aiff flac ogg";
 }
 
 Interface::Interface(PLUG_CLASS_NAME* inPlug)
@@ -150,6 +160,8 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	pGraphics->AttachControl(new IPanelControl(mPlug, controlRect, &Color::ControlSurfaceBackground));
 	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
 	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
+
+	pGraphics->AttachControl(new BangControl(mPlug, MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
 
 	for(int i = 0; i < kNoiseSnapshotCount; ++i)
 	{

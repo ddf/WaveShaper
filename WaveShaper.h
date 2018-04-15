@@ -76,6 +76,13 @@ public:
 	// converted the requested snapshot to normalized values before returning
 	NoiseSnapshot GetNoiseSnapshotNormalized(int idx);
 
+	// called from the UI for the Load and Save buttons.
+	// we need to wrap LoadProgramFromFXP and SaveProgramAsFXP
+	// to prevent our presets from getting overwritten.
+	void HandleSave(WDL_String* fileName, WDL_String* directory);
+	void HandleLoad(WDL_String* fileName, WDL_String* directory);
+	void DumpPresetSrc();
+
 private:
 
 	void SetParamBlend(int paramIdx, double begin, double end, double blend);

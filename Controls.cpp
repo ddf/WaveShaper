@@ -404,6 +404,123 @@ void TextBox::GrayOut(bool gray)
 }
 #pragma endregion TextBox
 
+#pragma  region BangControl
+
+BangControl::BangControl(IPlugBase* pPlug, IRECT iRect, Action action, IColor onColor, IColor offColor, IText* textStyle /*= nullptr*/, const char * label /*= nullptr*/, int paramIdx /*= -1*/, const char * fileTypes /*= "fxp"*/)
+	: IControl(pPlug, iRect, paramIdx)
+	, mAction(action)
+	, mOnColor(onColor)
+	, mOffColor(offColor)
+	, mLabel(label)
+	, mFileTypes(fileTypes)
+{
+	if (textStyle != nullptr)
+	{
+		SetText(textStyle);
+	}
+	mDblAsSingleClick = true;
+}
+
+bool BangControl::Draw(IGraphics* pGraphics)
+{
+	if (mValue > 0.5)
+	{
+		pGraphics->FillIRect(&mOnColor, &mRECT);
+	}
+	else
+	{
+		pGraphics->FillIRect(&mOffColor, &mRECT);
+	}
+
+	pGraphics->DrawRect(&mOnColor, &mRECT);
+
+	if (mLabel != nullptr)
+	{
+		char * label = const_cast<char*>(mLabel);
+		IRECT textRect = mRECT;
+		// vertically center the text
+		pGraphics->MeasureIText(&mText, label, &textRect);
+#ifdef OS_OSX
+		textRect.B -= 4;
+#endif
+		int offset = (mRECT.H() - textRect.H()) / 2;
+		textRect.T += offset;
+		textRect.B += offset;
+		pGraphics->MeasureIText(&mText, label, &textRect);
+		pGraphics->DrawIText(&mText, label, &textRect);
+	}
+
+	return true;
+}
+
+void BangControl::OnMouseDown(int x, int y, IMouseMod* pMod)
+{
+	if (mAction == ActionBangParam)
+	{
+		mValue = 1;
+		SetDirty();
+	}
+	else // not an actual parameter, direct-cast this bang on click
+	{
+		switch (mAction)
+		{
+		case ActionSave:
+		{
+			WDL_String fileName("");
+			WDL_String directory("");
+			GetGUI()->PromptForFile(&fileName, kFileSave, &directory, const_cast<char*>(mFileTypes));
+			if (fileName.GetLength() > 0)
+			{
+				PLUG_CLASS_NAME * plug = static_cast<PLUG_CLASS_NAME*>(mPlug);
+				if (plug != nullptr)
+				{
+					plug->HandleSave(&fileName, &directory);
+				}
+			}
+		}
+		break;
+
+		case ActionLoad:
+		{
+			WDL_String fileName("");
+			WDL_String directory("");
+			GetGUI()->PromptForFile(&fileName, kFileOpen, &directory, const_cast<char*>(mFileTypes));
+			if (fileName.GetLength() > 0)
+			{
+				PLUG_CLASS_NAME* plug = static_cast<PLUG_CLASS_NAME*>(mPlug);
+				if (plug != nullptr)
+				{
+					plug->HandleLoad(&fileName, &directory);
+				}
+			}
+		}
+		break;
+
+		case ActionDumpPreset:
+		{
+			PLUG_CLASS_NAME* plug = static_cast<PLUG_CLASS_NAME*>(mPlug);
+			if (plug != nullptr)
+			{
+				plug->DumpPresetSrc();
+			}
+		}
+		break;
+
+		}
+	}
+}
+
+void BangControl::OnMouseUp(int x, int y, IMouseMod* pMod)
+{
+	if (mParamIdx < kNumParams)
+	{
+		mValue = 0;
+		SetDirty();
+	}
+}
+
+#pragma  endregion 
+
 #pragma  region PeaksControl
 PeaksControl::PeaksControl(IPlugBase* pPlug, IRECT rect, IColor backColor, IColor peaksColor)
 	: IPanelControl(pPlug, rect, &backColor)
@@ -524,6 +641,16 @@ bool ShaperVizControl::Draw(IGraphics* pGraphics)
 	return false;
 }
 
+
+void ShaperVizControl::OnMouseUp(int x, int y, IMouseMod* pMod)
+{
+	TRACE;
+}
+
+void ShaperVizControl::OnMouseOver(int x, int y, IMouseMod* pMod)
+{
+	TRACE;
+}
 
 #pragma  endregion ShaperVizControl
 

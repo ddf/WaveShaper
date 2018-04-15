@@ -594,3 +594,106 @@ WaveShaper::NoiseSnapshot WaveShaper::GetNoiseSnapshotNormalized(int idx)
 
 	return normalized;
 }
+
+void WaveShaper::HandleSave(WDL_String* fileName, WDL_String* directory)
+{
+	if (strcmp(fileName->get_fileext(), "fxp") == 0)
+	{
+		const char * programName = fileName->get_filepart();
+		// change the current preset without actually loading it.
+		mCurrentPresetIdx = 0;
+		// modify this preset so that the preset name saved to the file is correct.
+		ModifyCurrentPreset(programName);
+		SaveProgramAsFXP(fileName);
+		// notify the host because we changed the settings of the first preset
+		InformHostOfProgramChange();
+
+		mInterface.OnPresetChanged();
+	}
+}
+
+void WaveShaper::HandleLoad(WDL_String* fileName, WDL_String* directory)
+{
+	if (strcmp(fileName->get_fileext(), "fxp") == 0)
+	{
+		// change preset index to first preset so that the program will load there
+		// instead of overwriting a real preset.
+		mCurrentPresetIdx = 0;
+		LoadProgramFromFXP(fileName);
+
+		mInterface.OnPresetChanged();
+	}
+	else
+	{
+		// we can load without locking cause mBuffer is not used by the DSP chain,
+		// so it's better to hang the UI thread than the audio thread.
+		mFileLoader.Load(fileName->Get(), mBuffer);
+		mInterface.RebuildPeaks(mBuffer);
+
+		// now we lock because we need to update the DSP
+		IMutexLock lock(this);
+		mNoizeShaperLeft->getWavetable().setWaveform(mBuffer.getChannel(0), mBuffer.getBufferSize());
+		if (mBuffer.getChannelCount() == 1)
+		{
+			mNoizeShaperRight->getWavetable().setWaveform(mBuffer.getChannel(0), mBuffer.getBufferSize());
+		}
+		else
+		{
+			mNoizeShaperRight->getWavetable().setWaveform(mBuffer.getChannel(1), mBuffer.getBufferSize());
+		}
+	}
+}
+
+
+// modified version of DumpPresetSrcCode 
+void WaveShaper::DumpPresetSrc()
+{
+	IMutexLock lock(this);
+
+	WDL_String path;
+	GetGUI()->DesktopPath(&path);
+	path.Append("\\dump.txt");
+	FILE* fp = fopen(path.Get(), "w");
+	// all the param indices we *should* include.
+	// we collect these first because we need the count for the second argument
+	// of MakePresetFromNamedParams
+	std::vector<int> paramsForDump;
+	for (int i = 0; i < kNumParams; ++i)
+	{
+		IParam* param = GetParam(i);
+		if (param->Value() != param->GetDefault())
+		{
+			paramsForDump.push_back(i);
+		}
+	}
+	const int paramCount = paramsForDump.size();
+	WDL_String name;
+	name.Set(GetPresetName(0));
+	name.remove_fileext();
+	fprintf(fp, "\tMakePresetFromNamedParams(\"%s\", %d", name.Get(), paramCount);
+	for (int i = 0; i < paramCount; ++i)
+	{
+		const int paramIdx = paramsForDump[i];
+		IParam* pParam = GetParam(paramIdx);
+		char paramVal[32];
+		switch (pParam->Type())
+		{
+		case IParam::kTypeBool:
+			sprintf(paramVal, "%s", (pParam->Bool() ? "true" : "false"));
+			break;
+		case IParam::kTypeInt:
+			sprintf(paramVal, "%d", pParam->Int());
+			break;
+		case IParam::kTypeEnum:
+			sprintf(paramVal, "%d", pParam->Int());
+			break;
+		case IParam::kTypeDouble:
+		default:
+			sprintf(paramVal, "%.6f", pParam->Value());
+			break;
+		}
+		fprintf(fp, "\n\t\t, %d, %s // %s", paramIdx, paramVal, pParam->GetNameForHost());
+	}
+	fprintf(fp, "\n\t);\n");
+	fclose(fp);
+}
