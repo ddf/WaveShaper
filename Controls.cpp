@@ -623,6 +623,17 @@ bool SnapshotControl::Draw(IGraphics* pGraphics)
 		pGraphics->FillCircle(&mPointColorB, x, y, mPointRadius, 0, true);
 	}
 
+	double weight = abs(GetParam()->GetNonNormalized(mValue) - mSnapshotIdx);
+	if (weight < 1)
+	{
+		IChannelBlend blend(IChannelBlend::kBlendNone, 1 - weight);
+		IColor border(255, 200, 200, 200);
+		pGraphics->DrawLine(&border, mRECT.L, mRECT.T, mRECT.R, mRECT.T, &blend);
+		pGraphics->DrawLine(&border, mRECT.R, mRECT.T+1, mRECT.R, mRECT.B-1, &blend);
+		pGraphics->DrawLine(&border, mRECT.L, mRECT.B, mRECT.R, mRECT.B, &blend);
+		pGraphics->DrawLine(&border, mRECT.L, mRECT.T+1, mRECT.L, mRECT.B-1, &blend);
+	}
+
 	if (mHighlight > 0)
 	{
 		IChannelBlend blend(IChannelBlend::kBlendNone, mHighlight);
@@ -648,7 +659,7 @@ void SnapshotControl::OnMouseDown(int x, int y, IMouseMod* pMod)
 	mValue = GetParam()->GetNormalized(mSnapshotIdx);
 	mHighlight = 1;
 	SetDirty();
-	mPlug->GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+	GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
 }
 
 #pragma  endregion
@@ -678,6 +689,16 @@ bool SnapshotSlider::Draw(IGraphics* pGraphics)
 	//pGraphics->FillTriangle(&mHandleColor, handle.L + 4, handleCY, handle.R - 6, handle.T, handle.R - 6, handle.B, &mBlend);
 
 	return true;
+}
+
+void SnapshotSlider::SetDirty(bool pushParamToPlug /*= true*/)
+{
+	IControl::SetDirty(pushParamToPlug);
+
+	if (pushParamToPlug)
+	{
+		GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+	}
 }
 
 #pragma  endregion

@@ -156,6 +156,7 @@ public:
 	SnapshotSlider(IPlugBase * pPlug, int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
 
 	bool Draw(IGraphics* pGraphics) override;
+	void SetDirty(bool pushParamToPlug = true) override;
 
 private:
 	IColor mLineColor;

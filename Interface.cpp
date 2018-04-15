@@ -159,7 +159,7 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	}
 
 	{
-		const int x = kControlSnapshot_X + kControlSnapshot_W;
+		const int x = kControlSnapshot_X + kControlSnapshot_W + 5;
 		const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
 		const int len = (kControlSnapshot_H + kControlSnapshot_S)*kNoiseSnapshotMax + kSnapshotSliderHandle*2;
 		pGraphics->AttachControl(new SnapshotSlider(mPlug, x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
