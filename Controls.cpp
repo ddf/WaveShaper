@@ -648,6 +648,36 @@ void SnapshotControl::OnMouseDown(int x, int y, IMouseMod* pMod)
 	mValue = GetParam()->GetNormalized(mSnapshotIdx);
 	mHighlight = 1;
 	SetDirty();
+	mPlug->GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+}
+
+#pragma  endregion
+
+#pragma  region SnapshotSlider
+
+SnapshotSlider::SnapshotSlider(IPlugBase* pPlug, int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor)
+	: IFaderControl(pPlug, x, y, len, paramIdx, &IBitmap(0, handleRadius*2, handleRadius*2))
+	, mLineColor(lineColor)
+	, mHandleColor(handleColor)
+{
+	mBlend.mMethod = IChannelBlend::kBlendNone;
+	mBlend.mWeight = 0.75f;
+}
+
+bool SnapshotSlider::Draw(IGraphics* pGraphics)
+{
+	IRECT handle = GetHandleRECT();
+	int handleRadius = handle.W() / 2;
+	int handleCX = handle.MW();
+	int handleCY = handle.MH();
+	pGraphics->DrawLine(&mLineColor, handleCX - 2, mRECT.T + handleRadius, handleCX + 2, mRECT.T + handleRadius, &mBlend);
+	pGraphics->DrawLine(&mLineColor, handleCX, mRECT.T + handleRadius, handleCX, mRECT.B - handleRadius, &mBlend);
+	pGraphics->DrawLine(&mLineColor, handleCX - 2, mRECT.B - handleRadius, handleCX + 2, mRECT.B - handleRadius, &mBlend);
+	
+	pGraphics->FillCircle(&mHandleColor, handleCX, handleCY, handleRadius-4, &mBlend, true);
+	//pGraphics->FillTriangle(&mHandleColor, handle.L + 4, handleCY, handle.R - 6, handle.T, handle.R - 6, handle.B, &mBlend);
+
+	return true;
 }
 
 #pragma  endregion

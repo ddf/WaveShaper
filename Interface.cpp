@@ -16,6 +16,7 @@ enum ELayout
 	kLargeKnobSize = 30,
 	kSmallKnobSize = 20,
 	kControlPointSize = 30,
+	kSnapshotSliderHandle = 15,
 
 	kPlugTitle_W = 200,
 	kPlugTitle_H = 15,
@@ -79,6 +80,9 @@ namespace Color
 	const IColor ControlSurfaceBackground(255, 60, 60, 60);
 	const IColor ControlPointA(255, 123, 123, 0);
 	const IColor ControlPointB(255, 0, 123, 123);
+
+	const IColor SnapshotSliderLine(255, 200, 200, 200);
+	const IColor SnapshotSliderHandle(128, 255, 255, 255);
 }
 
 namespace TextStyles
@@ -150,7 +154,15 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	for(int i = 0; i < kNoiseSnapshotCount; ++i)
 	{
 		int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
-		pGraphics->AttachControl(new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, i, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB));
+		int snapshotIdx = kNoiseSnapshotMax - i;
+		pGraphics->AttachControl(new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB));
+	}
+
+	{
+		const int x = kControlSnapshot_X + kControlSnapshot_W;
+		const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
+		const int len = (kControlSnapshot_H + kControlSnapshot_S)*kNoiseSnapshotMax + kSnapshotSliderHandle*2;
+		pGraphics->AttachControl(new SnapshotSlider(mPlug, x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
 	}
 
 	// Presets section

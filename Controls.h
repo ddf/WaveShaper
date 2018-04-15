@@ -149,3 +149,15 @@ private:
 	IColor mPointColorA;
 	IColor mPointColorB;
 };
+
+class SnapshotSlider : public IFaderControl
+{
+public:
+	SnapshotSlider(IPlugBase * pPlug, int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
+
+	bool Draw(IGraphics* pGraphics) override;
+
+private:
+	IColor mLineColor;
+	IColor mHandleColor;
+};
