@@ -61,8 +61,8 @@ instrument determined by PLUG _IS _INST
 #define SND_01_FN       "resources/snd/BadBassAmp.wav"
 
 // GUI default dimensions
-#define GUI_WIDTH   1024
-#define GUI_HEIGHT  768
+#define GUI_WIDTH   650
+#define GUI_HEIGHT  650
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #ifdef SA_API

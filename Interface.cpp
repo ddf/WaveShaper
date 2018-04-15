@@ -34,12 +34,12 @@ enum ELayout
 
 	kPeaksControl_W = 500,
 	kPeaksControl_H = 50,
-	kPeaksControl_X = GUI_WIDTH / 2 - kPeaksControl_W / 2,
-	kPeaksControl_Y = 50,
+	kPeaksControl_X = 25, // GUI_WIDTH / 2 - kPeaksControl_W / 2,
+	kPeaksControl_Y = 15,
 
 	kControlSurface_W = 500,
 	kControlSurface_H = 500,
-	kControlSurface_X = GUI_WIDTH / 2 - kControlSurface_W / 2,
+	kControlSurface_X = kPeaksControl_X, // GUI_WIDTH / 2 - kControlSurface_W / 2,
 	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H,
 
 	kControlSnapshot_S = 5,
@@ -52,8 +52,8 @@ enum ELayout
 
 	kNoiseTypeControl_W = 100,
 	kNoiseTypeControl_H = kEnumHeight,
-	kNoiseTypeControl_X = kPeaksControl_X - kNoiseTypeControl_W - 10,
-	kNoiseTypeControl_Y = kPeaksControl_Y,
+	kNoiseTypeControl_X = kControlSurface_X,
+	kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H + 10,
 };
 
 namespace Color
