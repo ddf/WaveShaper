@@ -2,6 +2,7 @@
 
 #include "resource.h"
 #include "IPlugStructs.h"
+#include "Params.h"
 
 class PLUG_CLASS_NAME;
 class IPlugBase;
@@ -9,6 +10,7 @@ class IGraphics;
 class IControl;
 class KnobLineCoronaControl;
 class PeaksControl;
+class SnapshotControl;
 
 namespace Minim
 {
@@ -26,6 +28,9 @@ public:
 	// called by the plug when a preset is loaded or saved
 	void OnPresetChanged();
 
+	// called by the plug when HandleAction is called with a snapshot index
+	void UpdateSnapshot(const int idx);
+
 	// called when the plug loads a new audio file
 	void RebuildPeaks(const Minim::MultiChannelBuffer& forSamples);
 
@@ -41,5 +46,6 @@ private:
 
 	IControl* mPresetControl;
 	PeaksControl* mPeaksControl;
+	SnapshotControl* mSnapshotControls[kNoiseSnapshotCount];
 };
 

@@ -44,13 +44,18 @@ enum ELayout
 	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H + 10,
 
 	kControlSnapshot_S = 5,
-	kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 10,
+	kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 30,
 	kControlSnapshot_Y = kControlSurface_Y,
 	kControlSnapshot_H = (kControlSurface_H - kControlSnapshot_S * kNoiseSnapshotMax) / kNoiseSnapshotCount,
 	kControlSnapshot_W = kControlSnapshot_H,
 	kControlSnapshot_R = 3,
 
-	kLoadAudioControl_X = kControlSnapshot_X,
+	kControlSnapshotBang_W = 20,
+	kControlSnapshotBang_H = kEnumHeight,
+	kControlSnapshotBang_X = kControlSnapshot_X - kControlSnapshotBang_W - 5,
+	kControlSnapshotBang_Y = kControlSnapshot_Y + kControlSnapshot_H/2 - kControlSnapshotBang_H/2,
+
+	kLoadAudioControl_X = kPeaksControl_X + kPeaksControl_W + 5,
 	kLoadAudioControl_Y = kPeaksControl_Y,
 	kLoadAudioControl_W = kControlSnapshot_W,
 	kLoadAudioControl_H = kEnumHeight,
@@ -124,6 +129,8 @@ namespace Strings
 
 	const char * LoadAudioLabel = "Load...";
 	const char * AudioFileTypes = "wav au snd aif aiff flac ogg";
+
+	const char * UpdateSnapshot = "=>";
 }
 
 Interface::Interface(PLUG_CLASS_NAME* inPlug)
@@ -131,6 +138,7 @@ Interface::Interface(PLUG_CLASS_NAME* inPlug)
 	, mPresetControl(nullptr)
 	, mPeaksControl(nullptr)
 {
+	memset(mSnapshotControls, 0, sizeof(mSnapshotControls));
 }
 
 Interface::~Interface()
@@ -167,7 +175,11 @@ void Interface::CreateControls(IGraphics* pGraphics)
 	{
 		int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
 		int snapshotIdx = kNoiseSnapshotMax - i;
-		pGraphics->AttachControl(new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB));
+		mSnapshotControls[snapshotIdx] = new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
+		pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
+
+		BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);
+		pGraphics->AttachControl(new BangControl(mPlug, MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
 	}
 
 	{
@@ -239,6 +251,14 @@ void Interface::OnPresetChanged()
 	{
 		mPresetControl->SetDirty(false);
 		mPresetControl->Redraw();
+	}
+}
+
+void Interface::UpdateSnapshot(const int idx)
+{
+	if (mSnapshotControls != nullptr)
+	{
+		mSnapshotControls[idx]->Update();
 	}
 }
 

@@ -432,7 +432,7 @@ bool BangControl::Draw(IGraphics* pGraphics)
 		pGraphics->FillIRect(&mOffColor, &mRECT);
 	}
 
-	pGraphics->DrawRect(&mOnColor, &mRECT);
+	//pGraphics->DrawRect(&mOnColor, &mRECT);
 
 	if (mLabel != nullptr)
 	{
@@ -505,6 +505,18 @@ void BangControl::OnMouseDown(int x, int y, IMouseMod* pMod)
 			}
 		}
 		break;
+
+		case ActionCustom:
+		default:
+		{
+			PLUG_CLASS_NAME* plug = static_cast<PLUG_CLASS_NAME*>(mPlug);
+			if (plug != nullptr)
+			{
+				plug->HandleAction(mAction);
+			}
+			mValue = 1;
+			SetDirty(false);
+		}
 
 		}
 	}
@@ -774,13 +786,21 @@ bool SnapshotControl::Draw(IGraphics* pGraphics)
 
 void SnapshotControl::OnMouseDown(int x, int y, IMouseMod* pMod)
 {
-	if (pMod->R)
+	if (pMod->L)
 	{
-		WaveShaper* shaper = dynamic_cast<WaveShaper*>(mPlug);
-		if (shaper != nullptr)
-		{
-			shaper->UpdateNoiseSnapshot(mSnapshotIdx);
-		}
+		mValue = GetParam()->GetNormalized(mSnapshotIdx);
+		mHighlight = 1;
+		SetDirty();
+		GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+	}
+}
+
+void SnapshotControl::Update()
+{
+	WaveShaper* shaper = dynamic_cast<WaveShaper*>(mPlug);
+	if (shaper != nullptr)
+	{
+		shaper->UpdateNoiseSnapshot(mSnapshotIdx);
 	}
 
 	mValue = GetParam()->GetNormalized(mSnapshotIdx);

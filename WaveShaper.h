@@ -3,6 +3,7 @@
 #include "IPlug_include_in_plug_hdr.h"
 #include "Params.h"
 #include "Interface.h"
+#include "Controls.h"
 #include "IMidiQueue.h"
 
 #include "FileLoader.h"
@@ -81,6 +82,7 @@ public:
 	// to prevent our presets from getting overwritten.
 	void HandleSave(WDL_String* fileName, WDL_String* directory);
 	void HandleLoad(WDL_String* fileName, WDL_String* directory);
+	void HandleAction(BangControl::Action action);
 	void DumpPresetSrc();
 
 private:

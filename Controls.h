@@ -85,6 +85,10 @@ public:
 		ActionLoad, // by default will load fxp files only, specify fileTypes to handle different files
 		ActionSave, // by default will save fxp files only, specify fileTypes to save to different files
 		ActionDumpPreset,
+
+		// if the action is greater than or equal to this value,
+		// the Bang will call HandleAction on the owning plug
+		ActionCustom = 100,
 	};
 
 	BangControl(IPlugBase* pPlug, IRECT iRect, Action action, IColor onColor, IColor offColor, IText* textStyle = nullptr, const char * label = nullptr, int paramIdx = -1, const char * fileTypes = "fxp");
@@ -177,6 +181,8 @@ public:
 	bool Draw(IGraphics* pGraphics) override;
 
 	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+
+	void Update();
 
 private:
 	int mSnapshotIdx;

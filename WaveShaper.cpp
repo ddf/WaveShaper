@@ -645,6 +645,12 @@ void WaveShaper::HandleLoad(WDL_String* fileName, WDL_String* directory)
 }
 
 
+void WaveShaper::HandleAction(BangControl::Action action)
+{
+	const int snapshotIdx = (int)action - (int)BangControl::ActionCustom;
+	mInterface.UpdateSnapshot(snapshotIdx);
+}
+
 // modified version of DumpPresetSrcCode 
 void WaveShaper::DumpPresetSrc()
 {
