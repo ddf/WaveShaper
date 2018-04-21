@@ -4,6 +4,7 @@
 #include "Params.h"
 #include "Interface.h"
 #include "Controls.h"
+#include "DSP.h"
 #include "IMidiQueue.h"
 
 #include "FileLoader.h"
@@ -102,8 +103,10 @@ private:
 
 	// midi
 	IMidiQueue mMidiQueue;
+	std::vector<IMidiMsg> mMidiNotes;
 	IMidiMsg::EControlChangeMsg mControlChangeForParam[kNumParams];
 	int mMidiLearnParamIdx;
+	
 
 	// audio
 	FileLoader mFileLoader;
@@ -121,6 +124,7 @@ private:
 	Minim::Pan		   * mPanLeft;
 	Minim::Pan		   * mPanRight;
 	Minim::Summer	   * mMainSignal;
+
 	Minim::Multiplier  * mMainSignalVol;
 
 	// controls
@@ -128,4 +132,5 @@ private:
 	Minim::Line		     mModCtrl;
 	Minim::Line		     mRangeCtrl;
 	Minim::Line          mShapeCtrl;
+	ADSR				 mEnvelope;
 };

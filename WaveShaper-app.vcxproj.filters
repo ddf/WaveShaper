@@ -105,6 +105,7 @@
       <Filter>minim</Filter>
     </ClInclude>
     <ClInclude Include="Interp.h" />
+    <ClInclude Include="DSP.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\WDL\rtaudiomidi\RtAudio.cpp">
@@ -178,6 +179,7 @@
     <ClCompile Include="..\minim-cpp\src\AudioSource.cpp">
       <Filter>minim</Filter>
     </ClCompile>
+    <ClCompile Include="DSP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WaveShaper.rc" />

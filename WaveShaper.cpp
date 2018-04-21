@@ -5,6 +5,7 @@
 #include "Params.h"
 #include "Interp.h"
 
+#include "DSP.h"
 #include "Noise.h"
 #include "Multiplier.h"
 #include "Waves.h"
@@ -40,8 +41,8 @@ const double kMinMod = 0.;
 const double kMaxMod = 120.;
 
 const double kDefaultRate = 0.0005;
-const double kMinRate = 0.00001f;
-const double kMaxRate = 0.001f;
+const double kMinRate = 0.00001;
+const double kMaxRate = 0.001;
 
 // range is the noise offset, which basically determines where in the file the center point of scrubbing is.
 const double kDefaultRange = 0;
@@ -106,7 +107,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mNoizeRate = new Minim::TickRate(kDefaultRate);
 	mNoizeRate->setInterpolation(true);
 
-	mRateCtrl.activate(0.f, kDefaultRate, kDefaultRate);
+	mRateCtrl.activate(0, 0, 0);
 	mRateCtrl.patch(mNoizeRate->value);
 
 	mNoize = new Minim::Noise(1.0f, mNoiseTint);
@@ -162,7 +163,7 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	mPanLeft->patch(*mMainSignal);
 	mPanRight->patch(*mMainSignal);
 
-	mMainSignal->patch(*mMainSignalVol);
+	mMainSignal->patch(mEnvelope).patch(*mMainSignalVol);
 	mMainSignalVol->setAudioChannelCount(2);
 }
 
@@ -209,11 +210,32 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 				// make sure this is a real NoteOn
 				if (pMsg->Velocity() > 0)
 				{
+					mMidiNotes.push_back(*pMsg);
+					if (!mEnvelope.isOn())
+					{
+						mEnvelope.noteOn(pMsg->Velocity() / 127.0f, 0.1f, 0.1f, 1, 0.1f);
+						OnParamChange(kNoiseRate);
+					}
 					break;
 				}
 				// fallthru in the case that a NoteOn is supposed to be treated like a NoteOff
 
 			case IMidiMsg::kNoteOff:
+				for (auto iter = mMidiNotes.crbegin(); iter != mMidiNotes.crend(); ++iter)
+				{
+					// remove the most recent note on with the same pitch
+					if (pMsg->NoteNumber() == iter->NoteNumber())
+					{
+						mMidiNotes.erase((iter + 1).base());
+						break;
+					}
+				}
+
+				if (mMidiNotes.empty())
+				{
+					mEnvelope.noteOff();
+					mRateCtrl.activate(mEnvelope.getRelease(), mRateCtrl.getAmp(), 0);
+				}
 				break;
 			}
 
@@ -278,7 +300,10 @@ void WaveShaper::OnParamChange(int paramIdx)
 		break;
 
 	case kNoiseRate:
-		mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), param->Value());
+		if (!mMidiNotes.empty())
+		{
+			mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), param->Value());
+		}
 		break;
 
 	case kNoiseRange:
