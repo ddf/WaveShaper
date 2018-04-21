@@ -13,6 +13,11 @@ enum EParams
 	// parameter for automating the scrub between saved Noise Snapshots
 	kNoiseSnapshot,
 
+	kEnvAttack,
+	kEnvDecay,
+	kEnvSustain,
+	kEnvRelease,
+
 	kNumParams,
 };
 

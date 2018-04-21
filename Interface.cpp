@@ -64,6 +64,12 @@ enum ELayout
 	kNoiseTypeControl_H = kEnumHeight,
 	kNoiseTypeControl_X = kControlSurface_X,
 	kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H + 10,
+
+	kEnvelopeControl_W = kLargeKnobSize,
+	kEnvelopeControl_H = kLargeKnobSize,
+	kEnvelopeControl_X = kNoiseTypeControl_X + kNoiseTypeControl_W + 50,
+	kEnvelopeControl_Y = kNoiseTypeControl_Y,
+	kEnvelopeControl_S = kEnvelopeControl_W + 20,
 };
 
 namespace Color
@@ -126,6 +132,10 @@ namespace Strings
 	const char * Title = PLUG_NAME " " VST3_VER_STR;
 	const char * PresetsLabel = "Presets";
 	const char * VolumeLabel = "Volume";
+	const char * EnvAttackLabel = "Attack";
+	const char * EnvDecayLabel = "Decay";
+	const char * EnvSustainLabel = "Sustain";
+	const char * EnvReleaseLabel = "Release";
 
 	const char * LoadAudioLabel = "Load...";
 	const char * AudioFileTypes = "wav au snd aif aiff flac ogg";
@@ -187,6 +197,14 @@ void Interface::CreateControls(IGraphics* pGraphics)
 		const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
 		const int len = (kControlSnapshot_H + kControlSnapshot_S)*kNoiseSnapshotMax + kSnapshotSliderHandle*2;
 		pGraphics->AttachControl(new SnapshotSlider(mPlug, x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
+	}
+
+	// ADSR
+	{
+		AttachKnob(pGraphics, MakeIRect(kEnvelopeControl), kEnvAttack, Strings::EnvAttackLabel);
+		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S), kEnvDecay, Strings::EnvDecayLabel);
+		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 2), kEnvSustain, Strings::EnvSustainLabel);
+		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 3), kEnvRelease, Strings::EnvReleaseLabel);
 	}
 
 	// Presets section

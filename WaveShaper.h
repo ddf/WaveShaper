@@ -97,7 +97,7 @@ private:
 	Interface mInterface;
 
 	// params
-	double mVolume;
+	double mVolume, mAttack, mDecay, mSustain, mRelease;
 
 	NoiseSnapshot mNoiseSnapshots[kNoiseSnapshotCount];
 

@@ -54,10 +54,32 @@ const double kDefaultShape = 0.1;
 const double kMinShape = 0.05;
 const double kMaxShape = 0.35;
 
+const double kEnvAttackMin = 0.005;
+const double kEnvAttackMax = 2;
+const double kEnvDecayMin = 0.005;
+const double kEnvDecayMax = 2;
+const double kEnvSustainMin = 0;
+const double kEnvSustainMax = 100;
+const double kEnvReleaseMin = 0.005;
+const double kEnvReleaseMax = 5;
+
+const double kEnvSustainDefault = 75;
+const double kEnvReleaseDefault = 0.25;
+
+const double kSecondsStep = 0.005;
+const char * kSecondsLabel = "s";
+
+const double kPercentStep = 1;
+const char * kPercentLabel = "%";
+
 WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
 	, mInterface(this)
 	, mVolume(1.)
+	, mAttack(kEnvAttackMin)
+	, mDecay(kEnvDecayMin)
+	, mSustain(kEnvSustainDefault/100.0)
+	, mRelease(kEnvReleaseDefault)
 	, mNoiseTint(Minim::Noise::eTintPink)
 	, mMidiLearnParamIdx(-1)
 {
@@ -96,6 +118,14 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 	// when this parameter changes, Noise Amp Mod, Noise Rate, Noise Range, and Noise Shape are all changed
 	// by lerping between the values in two Noise Snapshots.
 	GetParam(kNoiseSnapshot)->SetIsMeta(true);
+
+	// ADSR
+	{
+		GetParam(kEnvAttack)->InitDouble("Attack", kEnvAttackMin, kEnvAttackMin, kEnvAttackMax, kSecondsStep, kSecondsLabel);
+		GetParam(kEnvDecay)->InitDouble("Decay", kEnvDecayMin, kEnvDecayMin, kEnvDecayMax, kSecondsStep, kSecondsLabel);
+		GetParam(kEnvSustain)->InitDouble("Sustain", kEnvSustainDefault, kEnvSustainMin, kEnvSustainMax, kPercentStep, kPercentLabel);
+		GetParam(kEnvRelease)->InitDouble("Release", kEnvReleaseDefault, kEnvReleaseMin, kEnvReleaseMax, kSecondsStep, kSecondsLabel);
+	}
 
 	IGraphics* pGraphics = MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT);
 	mInterface.CreateControls(pGraphics);
@@ -213,7 +243,7 @@ void WaveShaper::ProcessDoubleReplacing(double** inputs, double** outputs, int n
 					mMidiNotes.push_back(*pMsg);
 					if (!mEnvelope.isOn())
 					{
-						mEnvelope.noteOn(pMsg->Velocity() / 127.0f, 0.1f, 0.1f, 1, 0.1f);
+						mEnvelope.noteOn(pMsg->Velocity() / 127.0f, mAttack, mDecay, mSustain, mRelease);
 						OnParamChange(kNoiseRate);
 					}
 					break;
@@ -324,6 +354,30 @@ void WaveShaper::OnParamChange(int paramIdx)
 		SetParamBlend(kNoiseRange, firstSnap.Range, secondSnap.Range, blend);
 		SetParamBlend(kNoiseRate, firstSnap.Rate, secondSnap.Rate, blend);
 		SetParamBlend(kNoiseShape, firstSnap.Shape, secondSnap.Shape, blend);
+	}
+	break;
+
+	case kEnvAttack:
+	{
+		mAttack = param->Value();
+	}
+	break;
+
+	case kEnvDecay:
+	{
+		mDecay = param->Value();
+	}
+	break;
+
+	case kEnvSustain:
+	{
+		mSustain = param->Value() / 100.0;
+	}
+	break;
+
+	case kEnvRelease:
+	{
+		mRelease = param->Value();
 	}
 	break;
 
