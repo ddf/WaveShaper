@@ -166,6 +166,7 @@ public:
 	void SetAuxParamValueFromPlug(int auxParamIdx, double value) override;
 
 private:
+	IRECT mPointRect;
 	// where the point current is.
 	int mPointX, mPointY;
 	int mPointRadius;
@@ -186,6 +187,7 @@ public:
 
 private:
 	int mSnapshotIdx;
+	IRECT mPointRect;
 	int mPointRadius;
 	float  mHighlight;
 	IColor mBackgroundColor;

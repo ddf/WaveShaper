@@ -35,12 +35,12 @@ enum ELayout
 
 	kPeaksControl_W = 500,
 	kPeaksControl_H = 50,
-	kPeaksControl_X = 25, // GUI_WIDTH / 2 - kPeaksControl_W / 2,
+	kPeaksControl_X = 20,
 	kPeaksControl_Y = 15,
 
-	kControlSurface_W = 500,
-	kControlSurface_H = 500,
-	kControlSurface_X = kPeaksControl_X, // GUI_WIDTH / 2 - kControlSurface_W / 2,
+	kControlSurface_W = kPeaksControl_W,
+	kControlSurface_H = kControlSurface_W,
+	kControlSurface_X = kPeaksControl_X,
 	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H + 10,
 
 	kControlSnapshot_S = 5,
@@ -97,12 +97,12 @@ namespace Color
 	const IColor PeaksForeground(255, 100, 100, 100);
 	const IColor PeaksBackground(255, 60, 60, 60);
 
-	const IColor ShaperBracket(255, 192, 0, 0);
-	const IColor ShaperLine(255, 0, 255, 0);
-
 	const IColor ControlSurfaceBackground(255, 60, 60, 60);
-	const IColor ControlPointA(255, 123, 123, 0);
-	const IColor ControlPointB(255, 0, 123, 123);
+	const IColor ControlPointA(255, 170, 170, 0);
+	const IColor ControlPointB(255, 0, 170, 170);
+
+	const IColor ShaperBracket(255, 0, 200, 200);
+	const IColor ShaperLine(255, 200, 200);
 
 	const IColor SnapshotSliderLine(255, 200, 200, 200);
 	const IColor SnapshotSliderHandle(128, 255, 255, 255);

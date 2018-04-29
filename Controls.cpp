@@ -601,6 +601,7 @@ void PeaksControl::UpdatePeaks(const Minim::MultiChannelBuffer& withSamples)
 #pragma  endregion PeaksControl
 
 #pragma  region ShaperVizControl
+const float kVizTriangleSize = 5;
 ShaperVizControl::ShaperVizControl(IPlugBase* pPlug, IRECT rect, IColor bracketColor, IColor lineColor)
 	: IControl(pPlug, rect)
 	, mBracketColor(bracketColor)
@@ -622,29 +623,71 @@ bool ShaperVizControl::Draw(IGraphics* pGraphics)
 		const float chunkSize = shaperSize / mRECT.W();
 		const float halfWidth = sampleWidth / chunkSize * 0.5f;
 
-		float x = center - halfWidth;
+		float x1 = center - halfWidth, x2 = center + halfWidth;
 		int y1 = mRECT.T, y2 = mRECT.B - 1;
-		if (x < mRECT.L)
-		{
-			x += waveWidth;
-		}
-		pGraphics->DrawLine(&mBracketColor, x, y1, x, y2);
-		pGraphics->DrawLine(&mBracketColor, x, y1, x + 4, y1);
-		pGraphics->DrawLine(&mBracketColor, x, y2, x + 4, y2);
-
-		x = center + halfWidth;
-		if (x > mRECT.R)
-		{
-			x -= waveWidth;
-		}
-		pGraphics->DrawLine(&mBracketColor, x, y1, x, y2);
-		pGraphics->DrawLine(&mBracketColor, x, y1, x - 4, y1);
-		pGraphics->DrawLine(&mBracketColor, x, y2, x - 4, y2);
 
 		// this will be [0, 1]
 		const float mapLookup = shaper->GetShaperMapValue();
-		x = Lerp(mRECT.L, mRECT.R, mapLookup);
-		pGraphics->DrawLine(&mLineColor, x, y1, x, y2);
+		const float lx = Lerp(mRECT.L, mRECT.R, mapLookup);
+		pGraphics->DrawLine(&mLineColor, lx, y1, lx, y2-1);
+
+		IChannelBlend blend(IChannelBlend::kBlendNone, 0.4f);
+		if (x1 < mRECT.L)
+		{
+			x1 += waveWidth;
+			//pGraphics->DrawLine(&mBracketColor, x1, y1, x1, y2);
+			//pGraphics->DrawLine(&mBracketColor, x1, y1, x1 + 4, y1);
+			//pGraphics->DrawLine(&mBracketColor, x1, y2, mRECT.R, y2);
+			//pGraphics->DrawLine(&mBracketColor, mRECT.L, y2, center, y2);
+
+			IRECT rect(x1, y1, mRECT.R, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+			rect = IRECT(mRECT.L, y1, center, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+		}
+		else
+		{
+			//pGraphics->DrawLine(&mBracketColor, x1, y1, x1, y2);
+			//pGraphics->DrawLine(&mBracketColor, x1, y1, x1 + 4, y1);
+			//pGraphics->DrawLine(&mBracketColor, x1, y2, center, y2);
+			IRECT rect(x1, y1, center, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+		}		
+
+		if (x2 > mRECT.R)
+		{
+			x2 -= waveWidth;
+			//pGraphics->DrawLine(&mBracketColor, x2, y1, x2, y2);
+			//pGraphics->DrawLine(&mBracketColor, x2, y1, x2 - 4, y1);
+			//pGraphics->DrawLine(&mBracketColor, x2, y2, mRECT.L, y2);
+			//pGraphics->DrawLine(&mBracketColor, center, y2, mRECT.R, y2);
+
+			IRECT rect(mRECT.L, y1, x2, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+			rect = IRECT(center, y1, mRECT.R, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+		}
+		else
+		{
+			//pGraphics->DrawLine(&mBracketColor, x2, y1, x2, y2);
+			//pGraphics->DrawLine(&mBracketColor, x2, y1, x2 - 4, y1);
+			//pGraphics->DrawLine(&mBracketColor, x2, y2, center, y2);
+			IRECT rect(center, y1, x2, y2);
+			pGraphics->FillIRect(&mBracketColor, &rect, &blend);
+		}
+
+		if (center > mRECT.L + kVizTriangleSize && center < mRECT.R - kVizTriangleSize)
+		{
+			pGraphics->FillTriangle(&mBracketColor, center, y2, center - kVizTriangleSize, y2, center, y2 - kVizTriangleSize, 0);
+			pGraphics->FillTriangle(&mBracketColor, center, y2, center + kVizTriangleSize, y2, center, y2 - kVizTriangleSize, 0);
+		}
+		else
+		{
+			x1 = mRECT.L;
+			x2 = mRECT.R;
+			pGraphics->FillTriangle(&mBracketColor, x1, y2, x1 + kVizTriangleSize, y2, x1, y2 - kVizTriangleSize, 0);
+			pGraphics->FillTriangle(&mBracketColor, x2, y2, x2 - kVizTriangleSize, y2, x2, y2 - kVizTriangleSize, 0);
+		}
 		
 		Redraw();
 		return true;
@@ -675,6 +718,7 @@ XYControl::XYControl(IPlugBase* pPlug, IRECT rect, const int paramX, const int p
 	, mPointX(0)
 	, mPointY(0)
 {
+	mPointRect = mRECT.GetPadded(-pointRadius - 1);
 	AddAuxParam(paramX);
 	AddAuxParam(paramY);
 }
@@ -698,13 +742,13 @@ void XYControl::OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMod)
 {
 	if (mGribbed)
 	{
-		mPointX = BOUNDED(mPointX + dX, mRECT.L, mRECT.R);
-		mPointY = BOUNDED(mPointY + dY, mRECT.T, mRECT.B);
+		mPointX = BOUNDED(mPointX + dX, mPointRect.L, mPointRect.R);
+		mPointY = BOUNDED(mPointY + dY, mPointRect.T, mPointRect.B);
 
 		mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
-		GetAuxParam(0)->mValue = Map(mPointX, mRECT.L, mRECT.R, 0, 1);
-		GetAuxParam(1)->mValue = Map(mPointY, mRECT.B, mRECT.T, 0, 1);
+		GetAuxParam(0)->mValue = Map(mPointX, mPointRect.L, mPointRect.R, 0, 1);
+		GetAuxParam(1)->mValue = Map(mPointY, mPointRect.B, mPointRect.T, 0, 1);
 		SetAllAuxParamsFromGUI();
 		SetDirty(false);
 	}
@@ -716,11 +760,11 @@ void XYControl::SetAuxParamValueFromPlug(int auxParamIdx, double value)
 
 	if (auxParamIdx == 0)
 	{
-		mPointX = Map(value, 0, 1, mRECT.L, mRECT.R);
+		mPointX = Map(value, 0, 1, mPointRect.L, mPointRect.R);
 	}
 	else if (auxParamIdx == 1)
 	{
-		mPointY = Map(value, 0, 1, mRECT.B, mRECT.T);
+		mPointY = Map(value, 0, 1, mPointRect.B, mPointRect.T);
 	}
 
 	mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
@@ -741,7 +785,7 @@ SnapshotControl::SnapshotControl(IPlugBase* pPlug, IRECT rect, const int snapsho
 	, mPointColorB(pointColorB)
 	, mHighlight(0)
 {
-
+	mPointRect = mRECT.GetPadded(-pointRadius - 1);
 }
 
 bool SnapshotControl::Draw(IGraphics* pGraphics)
@@ -753,12 +797,12 @@ bool SnapshotControl::Draw(IGraphics* pGraphics)
 	{
 		WaveShaper::NoiseSnapshot snapshot = shaper->GetNoiseSnapshotNormalized(mSnapshotIdx);
 		
-		float x = ::Lerp(mRECT.L, mRECT.R, snapshot.AmpMod);
-		float y = ::Lerp(mRECT.B, mRECT.T, snapshot.Rate);
+		float x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.AmpMod);
+		float y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Rate);
 		pGraphics->FillCircle(&mPointColorA, x, y, mPointRadius, 0, true);
 		
-		x = ::Lerp(mRECT.L, mRECT.R, snapshot.Range);
-		y = ::Lerp(mRECT.B, mRECT.T, snapshot.Shape);
+		x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.Range);
+		y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Shape);
 		pGraphics->FillCircle(&mPointColorB, x, y, mPointRadius, 0, true);
 	}
 
