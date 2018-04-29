@@ -850,4 +850,46 @@ void SnapshotSlider::SetDirty(bool pushParamToPlug /*= true*/)
 
 #pragma  endregion
 
+#pragma  region PlayStopControl
+PlayStopControl::PlayStopControl(IPlugBase* pPlug, IRECT rect, IColor backgroundColor, IColor foregroundColor)
+	: IPanelControl(pPlug, rect, &backgroundColor)
+	, mForeground(foregroundColor)
+{
+	mIconRect = mRECT.GetPadded(-8);
+	mDblAsSingleClick = true;
+}
 
+void PlayStopControl::OnMouseDown(int x, int y, IMouseMod* pMod)
+{
+	IMidiMsg msg;
+	if (mValue)
+	{
+		msg.MakeNoteOffMsg(0, 0);
+		mValue = 0;
+	}
+	else
+	{
+		msg.MakeNoteOnMsg(0, 127, 0);
+		mValue = 1;
+	}
+	mPlug->ProcessMidiMsg(&msg);
+	SetDirty(false);
+}
+
+bool PlayStopControl::Draw(IGraphics* pGraphics)
+{
+	IPanelControl::Draw(pGraphics);
+
+	if (mValue)
+	{
+		pGraphics->FillIRect(&mForeground, &mIconRect);
+	}
+	else
+	{
+		pGraphics->FillTriangle(&mForeground, mIconRect.L, mIconRect.T, mIconRect.R, (int)mIconRect.MH(), mIconRect.L, mIconRect.B, 0);
+	}
+
+	return true;
+}
+
+#pragma endregion

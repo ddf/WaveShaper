@@ -205,3 +205,17 @@ private:
 	IColor mLineColor;
 	IColor mHandleColor;
 };
+
+class PlayStopControl : public IPanelControl
+{
+public:
+	PlayStopControl(IPlugBase* pPlug, IRECT rect, IColor backgroundColor, IColor foregroundColor);
+
+	virtual void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+	virtual bool Draw(IGraphics* pGraphics) override;
+
+private:
+	IRECT  mIconRect;
+	IColor mForeground;
+	bool   mPlaying;
+};

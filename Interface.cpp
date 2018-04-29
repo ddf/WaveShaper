@@ -70,6 +70,11 @@ enum ELayout
 	kEnvelopeControl_X = kNoiseTypeControl_X + kNoiseTypeControl_W + 50,
 	kEnvelopeControl_Y = kNoiseTypeControl_Y,
 	kEnvelopeControl_S = kEnvelopeControl_W + 20,
+
+	kPlayStopControl_W = 30,
+	kPlayStopControl_H = 30,
+	kPlayStopControl_X = kControlSurface_X + kControlSurface_W - kPlayStopControl_W,
+	kPlayStopControl_Y = kControlSurface_Y + kControlSurface_H + 10,
 };
 
 namespace Color
@@ -101,6 +106,9 @@ namespace Color
 
 	const IColor SnapshotSliderLine(255, 200, 200, 200);
 	const IColor SnapshotSliderHandle(128, 255, 255, 255);
+
+	const IColor PlayStopBackground(EnumBackground);
+	const IColor PlayStopForeground(EnumBorder);
 }
 
 namespace TextStyles
@@ -206,6 +214,8 @@ void Interface::CreateControls(IGraphics* pGraphics)
 		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 2), kEnvSustain, Strings::EnvSustainLabel);
 		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 3), kEnvRelease, Strings::EnvReleaseLabel);
 	}
+
+	pGraphics->AttachControl(new PlayStopControl(mPlug, MakeIRect(kPlayStopControl), Color::PlayStopBackground, Color::PlayStopForeground));
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )
