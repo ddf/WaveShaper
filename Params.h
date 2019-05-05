@@ -42,3 +42,9 @@ enum ENoiseType
 
 	NT_Count,
 };
+
+enum ECtrlTags
+{
+  kCtrlTagMeter = 0,
+  kNumCtrlTags
+};

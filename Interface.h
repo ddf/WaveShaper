@@ -1,11 +1,10 @@
 #pragma once
 
-#include "resource.h"
+#include "config.h"
 #include "IPlugStructs.h"
 #include "Params.h"
 
 class PLUG_CLASS_NAME;
-class IPlugBase;
 class IGraphics;
 class IControl;
 class KnobLineCoronaControl;
@@ -35,7 +34,7 @@ public:
 	void RebuildPeaks(const Minim::MultiChannelBuffer& forSamples);
 
 	// used by Controls to initiate MIDILearn functionality in the Standalone
-	static void BeginMIDILearn(IPlugBase* plug, const int paramIdx1, const int paramIdx2, const int x, const int y);
+	static void BeginMIDILearn(IEditorDelegate* plug, const int paramIdx1, const int paramIdx2, const int x, const int y);
 
 private:	
 	IControl* AttachEnum(IGraphics* pGraphics, IRECT rect, const int paramIdx, const char * label = nullptr);

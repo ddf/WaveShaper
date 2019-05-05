@@ -20,8 +20,8 @@ enum ELayout
 
 	kPlugTitle_W = 200,
 	kPlugTitle_H = 15,
-	kPlugTitle_X = GUI_WIDTH - 10 - kPlugTitle_W,
-	kPlugTitle_Y = GUI_HEIGHT - kPlugTitle_H - 10,
+	kPlugTitle_X = PLUG_WIDTH - 10 - kPlugTitle_W,
+	kPlugTitle_Y = PLUG_HEIGHT - kPlugTitle_H - 10,
 
 	kPresetRestoreControl_X = 10,
 	kPresetRestoreControl_Y = 10,
@@ -30,7 +30,7 @@ enum ELayout
 
 	kVolumeControl_W = kLargeKnobSize,
 	kVolumeControl_H = kLargeKnobSize,
-	kVolumeControl_X = GUI_WIDTH - kVolumeControl_W - 10,
+	kVolumeControl_X = PLUG_WIDTH - kVolumeControl_W - 10,
 	kVolumeControl_Y = 15,
 
 	kPeaksControl_W = 500,
@@ -114,11 +114,11 @@ namespace Color
 namespace TextStyles
 {
 #ifdef OS_WIN
-	const int ControlTextSize = 12;
-	const int LabelTextSize = 12;
-	const int ButtonTextSize = 12;
-	char * ControlFont = 0;
-	char * LabelFont = 0;
+	const float ControlTextSize = 12;
+	const float LabelTextSize = 12;
+	const float ButtonTextSize = 12;
+	const char * ControlFont = "ControlFont";
+	const char * LabelFont = "LabelFont";
 #else
 	const int ControlTextSize = 14;
 	const int LabelTextSize = 12;
@@ -126,18 +126,17 @@ namespace TextStyles
 	char * ControlFont = 0;
 	char * LabelFont = "Helvetica Neue";
 #endif
-	// can't be const because of stupid ITextControl constructor
-	IText  Title(LabelTextSize+8, &Color::Title, LabelFont, IText::kStyleBold, IText::kAlignFar);
-	IText  Label(LabelTextSize, &Color::Label, LabelFont, IText::kStyleBold, IText::kAlignCenter);
-	IText  Enum(ControlTextSize, &Color::Label, ControlFont, IText::kStyleNormal, IText::kAlignCenter, 0, IText::kQualityDefault, &Color::EnumBackground, &Color::EnumBorder);
-	IText  TextBox(ControlTextSize, &Color::Label, ControlFont, IText::kStyleNormal, IText::kAlignCenter, 0, IText::kQualityDefault, &Color::EnumBackground, &Color::EnumBorder);
-	IText  StepMode(ControlTextSize-2, &Color::Label, ControlFont, IText::kStyleNormal, IText::kAlignCenter, 0, IText::kQualityDefault, &Color::EnumBackground, &Color::EnumBorder);
-	IText  ButtonLabel(ButtonTextSize, &Color::Label, ControlFont, IText::kStyleNormal, IText::kAlignCenter);
+	const IText  Title(LabelTextSize+8, Color::Title, LabelFont, IText::kAlignFar);
+	const IText  Label(LabelTextSize, Color::Label, LabelFont, IText::kAlignCenter);
+	const IText  Enum(ControlTextSize, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  TextBox(ControlTextSize, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  StepMode(ControlTextSize-2, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  ButtonLabel(ButtonTextSize, Color::Label, ControlFont, IText::kAlignCenter);
 }
 
 namespace Strings
 {
-	const char * Title = PLUG_NAME " " VST3_VER_STR;
+	const char * Title = PLUG_NAME " " PLUG_VERSION_STR;
 	const char * PresetsLabel = "Presets";
 	const char * VolumeLabel = "Volume";
 	const char * EnvAttackLabel = "Attack";
@@ -170,13 +169,13 @@ void Interface::CreateControls(IGraphics* pGraphics)
 {
 	pGraphics->HandleMouseOver(true);
 
-	pGraphics->AttachPanelBackground(&Color::Background);
+	pGraphics->AttachPanelBackground(Color::Background);
 
-	pGraphics->AttachControl(new ITextControl(mPlug, MakeIRect(kPlugTitle), &TextStyles::Title, Strings::Title));
+	pGraphics->AttachControl(new ITextControl(MakeIRect(kPlugTitle), Strings::Title, TextStyles::Title));
 
 	AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
 
-	pGraphics->AttachControl(new EnumControl(mPlug, MakeIRect(kNoiseTypeControl), kNoiseType, &TextStyles::Enum));
+	pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
 
 	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
 	pGraphics->AttachControl(mPeaksControl);
@@ -298,7 +297,7 @@ void Interface::RebuildPeaks(const Minim::MultiChannelBuffer& forSamples)
 	}
 }
 
-void Interface::BeginMIDILearn(IPlugBase* plug, const int paramIdx1, const int paramIdx2, const int x, const int y)
+void Interface::BeginMIDILearn(IEditorDelegate* plug, const int paramIdx1, const int paramIdx2, const int x, const int y)
 {
 	PLUG_CLASS_NAME *quartzPlug = dynamic_cast<PLUG_CLASS_NAME *>(plug);
 	if (NULL != quartzPlug)
