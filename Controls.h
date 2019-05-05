@@ -8,6 +8,7 @@ class EnumControl : public IControl
 public:
 	EnumControl(IRECT rect, int paramIdx, const IText& textStyle);
 
+  void OnInit() override;
 	void Draw(IGraphics& g) override;
 	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
 	void OnMouseWheel(float x, float y, const IMouseMod& pMod, float d) override;
@@ -40,7 +41,7 @@ public:
 		ActionCustom = 100,
 	};
 
-	BangControl(IRECT iRect, Action action, IColor onColor, IColor offColor, IText* textStyle = nullptr, const char * label = nullptr, int paramIdx = -1, const char * fileTypes = "fxp");
+	BangControl(IRECT iRect, Action action, IColor onColor, IColor offColor, const IText* textStyle = nullptr, const char * label = nullptr, int paramIdx = -1, const char * fileTypes = "fxp");
 
 	void Draw(IGraphics& g) override;
 
@@ -99,18 +100,21 @@ private:
 class XYControl : public IControl
 {
 public:
-	XYControl(IPlugBase* pPlug, IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
+	XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
 
-	bool Draw(IGraphics* pGraphics) override;
+  void OnInit() override;
+	void Draw(IGraphics& g) override;
 	
-	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
-	void OnMouseUp(int x, int y, IMouseMod* pMod) override;
-	void OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMod) override;
+	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
+	void OnMouseUp(float x, float y, const IMouseMod& pMod) override;
+	void OnMouseDrag(float x, float y, float dX, float dY, const IMouseMod& pMod) override;
 
-
-	void SetAuxParamValueFromPlug(int auxParamIdx, double value) override;
+  void OnParamValueFromPlug(int auxParamIdx, double value);
 
 private:
+
+  int mParamX, mParamY;
+  int mControlX, mControlY;
 	IRECT mPointRect;
 	// where the point current is.
 	int mPointX, mPointY;
@@ -122,11 +126,11 @@ private:
 class SnapshotControl : public IControl
 {
 public:
-	SnapshotControl(IPlugBase* pPlug, IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB);
+	SnapshotControl(IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB);
 
-	bool Draw(IGraphics* pGraphics) override;
+	void Draw(IGraphics& g) override;
 
-	void OnMouseDown(int x, int y, IMouseMod* pMod) override;
+	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
 
 	void Update();
 
@@ -140,15 +144,16 @@ private:
 	IColor mPointColorB;
 };
 
-class SnapshotSlider : public IFaderControl
+class SnapshotSlider : public ISliderControlBase
 {
 public:
-	SnapshotSlider(IPlugBase * pPlug, int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
+	SnapshotSlider(int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
 
-	bool Draw(IGraphics* pGraphics) override;
+	void Draw(IGraphics& g) override;
 	void SetDirty(bool pushParamToPlug = true) override;
 
 private:
+  IBlend mBlend;
 	IColor mLineColor;
 	IColor mHandleColor;
 };
@@ -156,10 +161,10 @@ private:
 class PlayStopControl : public IPanelControl
 {
 public:
-	PlayStopControl(IPlugBase* pPlug, IRECT rect, IColor backgroundColor, IColor foregroundColor);
+	PlayStopControl(IRECT rect, IColor backgroundColor, IColor foregroundColor);
 
-	virtual void OnMouseDown(int x, int y, IMouseMod* pMod) override;
-	virtual bool Draw(IGraphics* pGraphics) override;
+	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
+	void Draw(IGraphics& g) override;
 
 private:
 	IRECT  mIconRect;

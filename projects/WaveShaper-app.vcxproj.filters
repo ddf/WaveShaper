@@ -101,6 +101,9 @@
     <ClCompile Include="..\MidiMapper.cpp" />
     <ClCompile Include="..\TextBox.cpp" />
     <ClCompile Include="..\FileLoader.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\MultiChannelBuffer.cpp">
+      <Filter>minim</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\WaveShaper.h" />
@@ -307,6 +310,9 @@
     <ClInclude Include="..\MidiMapper.h" />
     <ClInclude Include="..\TextBox.h" />
     <ClInclude Include="..\FileLoader.h" />
+    <ClInclude Include="..\..\minim-cpp\src\MultiChannelBuffer.h">
+      <Filter>minim</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="resources">
@@ -344,6 +350,9 @@
     </Filter>
     <Filter Include="IPlug\Extras\Synth">
       <UniqueIdentifier>{fc763cd3-cc76-4d31-9ba4-a4e7361e4adf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="minim">
+      <UniqueIdentifier>{fd829f60-d63d-4e18-85c9-0006949dd610}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

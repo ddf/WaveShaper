@@ -1,4 +1,4 @@
-#include "IPlugOSDetect.h"
+#include "IPlugPlatform.h"
 #include "FileLoader.h"
 
 #ifdef OS_WIN

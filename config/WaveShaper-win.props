@@ -7,7 +7,7 @@
     <BINARY_NAME>WaveShaper</BINARY_NAME>
     <EXTRA_ALL_DEFS>IGRAPHICS_NANOVG;IGRAPHICS_GL2</EXTRA_ALL_DEFS>
     <MINIM_PATH>$(SolutionDir)..\..\Projects\minim-cpp</MINIM_PATH>
-    <EXTRA_INC_PATHS>$(MINIM_PATH)\src;$(MINIM_PATH)\ugens;$(MINIM_PATH)\libsndfile\include</EXTRA_INC_PATHS>
+    <EXTRA_INC_PATHS>$(MINIM_PATH)\src;$(MINIM_PATH)\src\ugens;</EXTRA_INC_PATHS>
     <EXTRA_DEBUG_DEFS />
     <EXTRA_RELEASE_DEFS />
     <EXTRA_TRACER_DEFS />
@@ -20,11 +20,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(EXTRA_INC_PATHS);$(IPLUG_INC_PATHS);$(IGRAPHICS_INC_PATHS);$(GLAD_GL2_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(EXTRA_INC_PATHS);$(IPLUG_INC_PATHS);$(IGRAPHICS_INC_PATHS);$(GLAD_GL2_PATHS);$(VcpkgRoot)..\$(VcpkgTriplet)-static\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(EXTRA_ALL_DEFS);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>wininet.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(VcpkgRoot)..\$(VcpkgTriplet)-static\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libsndfile.lib;flac++.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;wininet.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ProgramDatabaseFile>$(PDB_FILE)</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent>

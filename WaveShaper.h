@@ -23,9 +23,39 @@ public:
   void HandleAction(BangControl::Action action);
   void DumpPresetSrc();
 
+  // getters used by UI classes to draw things
+  float GetNoiseOffset() const;
+  float GetNoiseRate() const;
+  float GetShape() const;
+  float GetShaperSize() const;
+  float GetShaperMapValue() const;
+
+  // #TODO switch everything over to MidiMapper
+  void BeginMIDILearn(int param1, int param2, int x, int y) {}
+
+  struct NoiseSnapshot
+  {
+    double AmpMod;
+    double Rate;
+    double Range;
+    double Shape;
+  };
+
+  void UpdateNoiseSnapshot(int idx);
+
+  const NoiseSnapshot& GetNoiseSnapshot(int idx) const
+  {
+    return mNoiseSnapshots[idx];
+  }
+
+  // converted the requested snapshot to normalized values before returning
+  NoiseSnapshot GetNoiseSnapshotNormalized(int idx);
+
 private:
   FileLoader mFileLoader;
   Minim::MultiChannelBuffer mBuffer;
+
+  NoiseSnapshot mNoiseSnapshots[kNoiseSnapshotCount];
 
 #if IPLUG_DSP // All DSP methods and member variables should be within an IPLUG_DSP guard, should you want distributed UI
 public:

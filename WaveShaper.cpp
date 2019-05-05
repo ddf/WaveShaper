@@ -65,7 +65,7 @@ mInterface(this)
   GetParam(kNoiseType)->SetDisplayText(1, "Pink");
   GetParam(kNoiseType)->SetDisplayText(2, "Red");
 
-  GetParam(kNoiseAmpMod)->InitDouble("Noise Amp Mod", kDefaultMod, kMinMod, kMaxMod, 0.1, "Hz", "", 2.0);
+  GetParam(kNoiseAmpMod)->InitDouble("Noise Amp Mod", kDefaultMod, kMinMod, kMaxMod, 0.1, "Hz", IParam::kFlagsNone, "", IParam::ShapePowCurve(2.0));
   GetParam(kNoiseRate)->InitDouble("Noise Rate", kDefaultRate, kMinRate, kMaxRate, kMinRate);
   GetParam(kNoiseRange)->InitDouble("Noise Range", kDefaultRange, kMinRange, kMaxRange, 0.01);
   GetParam(kNoiseShape)->InitDouble("Noise Shape", kDefaultShape, kMinShape, kMaxShape, 0.01);
@@ -114,7 +114,7 @@ mInterface(this)
 #if IPLUG_DSP
 void WaveShaper::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
-  const double gain = GetParam(kParamGain)->Value() / 100.;
+  const double gain = DBToAmp(GetParam(kVolume)->Value());
   const int nChans = NOutChansConnected();
 
   mDSP.ProcessBlock(inputs, outputs, 2, nFrames);
@@ -168,16 +168,63 @@ handle:
 void WaveShaper::OnParamChange(int paramIdx)
 {
   switch (paramIdx)
-  {
-    case kParamNoteGlideTime:
-      mDSP.mSynth.SetNoteGlideTime(GetParam(paramIdx)->Value());
-      break;
-      
+  {      
     default:
       break;
   }
 }
 #endif
+
+float WaveShaper::GetNoiseOffset() const
+{
+  // #TODO GetNoiseOffset
+  return 0; // mNoizeOffset->value.getLastValue();
+}
+
+float WaveShaper::GetNoiseRate() const
+{
+  // #TODO GetNoiseRate
+  return 0; // mNoizeRate->getLastValues()[0];
+}
+
+float WaveShaper::GetShape() const
+{
+  // #TODO GetShape
+  return 0; // mShapeCtrl.getLastValues()[0];
+}
+
+float WaveShaper::GetShaperSize() const
+{
+  // #TODO GetShaperSize
+  return 1024; // mNoizeShaperLeft->getWavetable().size();
+}
+
+float WaveShaper::GetShaperMapValue() const
+{
+  // #TODO GetShaperMapValue
+  return 0; // mNoizeShaperLeft->getLastMapValue();
+}
+
+void WaveShaper::UpdateNoiseSnapshot(int idx)
+{
+  mNoiseSnapshots[idx].AmpMod = GetParam(kNoiseAmpMod)->Value();
+  mNoiseSnapshots[idx].Range = GetParam(kNoiseRange)->Value();
+  mNoiseSnapshots[idx].Rate = GetParam(kNoiseRate)->Value();
+  mNoiseSnapshots[idx].Shape = GetParam(kNoiseShape)->Value();
+}
+
+WaveShaper::NoiseSnapshot WaveShaper::GetNoiseSnapshotNormalized(int idx)
+{
+  const NoiseSnapshot& snapshot = GetNoiseSnapshot(idx);
+
+  NoiseSnapshot normalized;
+  normalized.AmpMod = GetParam(kNoiseAmpMod)->ToNormalized(snapshot.AmpMod);
+  normalized.Range = GetParam(kNoiseRange)->ToNormalized(snapshot.Range);
+  normalized.Rate = GetParam(kNoiseRate)->ToNormalized(snapshot.Rate);
+  normalized.Shape = GetParam(kNoiseShape)->ToNormalized(snapshot.Shape);
+
+  return normalized;
+}
 
 void WaveShaper::HandleSave(WDL_String* fileName, WDL_String* directory)
 {

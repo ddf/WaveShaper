@@ -1,4 +1,6 @@
 #include "Interface.h"
+#include "TextBox.h"
+#include "KnobLineCoronaControl.h"
 
 #define str(s) #s
 #define HEADER(CLASS) str(CLASS.h)
@@ -167,6 +169,8 @@ Interface::~Interface()
 
 void Interface::CreateControls(IGraphics* pGraphics)
 {
+  pGraphics->LoadFont(TextStyles::ControlFont, "Segoe UI", kTextStyleBold);
+  pGraphics->LoadFont(TextStyles::LabelFont, "Segoe UI", kTextStyleNormal);
 	pGraphics->HandleMouseOver(true);
 
 	pGraphics->AttachPanelBackground(Color::Background);
@@ -177,33 +181,33 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
 	pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
 
-	mPeaksControl = new PeaksControl(mPlug, MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
+	mPeaksControl = new PeaksControl(MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
 	pGraphics->AttachControl(mPeaksControl);
-	pGraphics->AttachControl(new ShaperVizControl(mPlug, MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
+	pGraphics->AttachControl(new ShaperVizControl(MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
 
 	IRECT controlRect = MakeIRect(kControlSurface);
-	pGraphics->AttachControl(new IPanelControl(mPlug, controlRect, &Color::ControlSurfaceBackground));
-	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
-	pGraphics->AttachControl(new XYControl(mPlug, controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
+	pGraphics->AttachControl(new IPanelControl(controlRect, Color::ControlSurfaceBackground));
+	pGraphics->AttachControl(new XYControl(controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
+	pGraphics->AttachControl(new XYControl(controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
 
-	pGraphics->AttachControl(new BangControl(mPlug, MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
+	pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
 
 	for(int i = 0; i < kNoiseSnapshotCount; ++i)
 	{
 		int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
 		int snapshotIdx = kNoiseSnapshotMax - i;
-		mSnapshotControls[snapshotIdx] = new SnapshotControl(mPlug, MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
+		mSnapshotControls[snapshotIdx] = new SnapshotControl(MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
 		pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
 
 		BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);
-		pGraphics->AttachControl(new BangControl(mPlug, MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
+		pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
 	}
 
 	{
 		const int x = kControlSnapshot_X + kControlSnapshot_W + 5;
 		const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
 		const int len = (kControlSnapshot_H + kControlSnapshot_S)*kNoiseSnapshotMax + kSnapshotSliderHandle*2;
-		pGraphics->AttachControl(new SnapshotSlider(mPlug, x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
+		pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
 	}
 
 	// ADSR
@@ -214,7 +218,7 @@ void Interface::CreateControls(IGraphics* pGraphics)
 		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 3), kEnvRelease, Strings::EnvReleaseLabel);
 	}
 
-	pGraphics->AttachControl(new PlayStopControl(mPlug, MakeIRect(kPlayStopControl), Color::PlayStopBackground, Color::PlayStopForeground));
+	pGraphics->AttachControl(new PlayStopControl(MakeIRect(kPlayStopControl), Color::PlayStopBackground, Color::PlayStopForeground));
 
 	// Presets section
 	if ( mPlug->NPresets() > 1 )
@@ -225,14 +229,14 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
 IControl* Interface::AttachEnum(IGraphics* pGraphics, IRECT rect, const int paramIdx, const char * label /*= nullptr*/)
 {
-	IControl* control = new EnumControl(mPlug, rect, paramIdx, &TextStyles::Enum);
+	IControl* control = new EnumControl(rect, paramIdx, TextStyles::Enum);
 	pGraphics->AttachControl(control);
 
 	if (label != nullptr)
 	{
 		rect.B = rect.T;
 		rect.T -= 20;
-		pGraphics->AttachControl(new ITextControl(mPlug, rect, &TextStyles::Label, const_cast<char*>(label)));
+		pGraphics->AttachControl(new ITextControl(rect, label, TextStyles::Label));
 	}
 
 	return control;
@@ -240,14 +244,14 @@ IControl* Interface::AttachEnum(IGraphics* pGraphics, IRECT rect, const int para
 
 IControl* Interface::AttachTextBox(IGraphics* pGraphics, IRECT rect, const int paramIdx, const float scrollSpeed, const char * maxValue, const char * label /*= nullptr*/)
 {
-	IControl* control = new TextBox(mPlug, rect, paramIdx, &TextStyles::TextBox, pGraphics, maxValue, false, scrollSpeed);
+	IControl* control = new TextBox(rect, paramIdx, TextStyles::TextBox, pGraphics, maxValue, false, scrollSpeed);
 	pGraphics->AttachControl(control);
 
 	if (label != nullptr)
 	{
 		rect.B = rect.T;
 		rect.T -= 20;
-		pGraphics->AttachControl(new ITextControl(mPlug, rect, &TextStyles::Label, const_cast<char*>(label)));
+		pGraphics->AttachControl(new ITextControl(rect, label, TextStyles::Label));
 	}
 
 	return control;
@@ -255,7 +259,7 @@ IControl* Interface::AttachTextBox(IGraphics* pGraphics, IRECT rect, const int p
 
 KnobLineCoronaControl* Interface::AttachKnob(IGraphics* pGraphics, IRECT rect, const int paramIdx, const char * label /*= nullptr*/)
 {
-	KnobLineCoronaControl* knob = new KnobLineCoronaControl(mPlug, rect, paramIdx, &Color::KnobLine, &Color::KnobCorona);
+	KnobLineCoronaControl* knob = new KnobLineCoronaControl(rect, paramIdx, Color::KnobLine, Color::KnobCorona);
 	pGraphics->AttachControl(knob);
 	
 	if (label != nullptr)
@@ -264,9 +268,9 @@ KnobLineCoronaControl* Interface::AttachKnob(IGraphics* pGraphics, IRECT rect, c
 		rect.B += 15;
 		rect.L -= 15;
 		rect.R += 15;
-		ITextControl* labelControl = new ITextControl(mPlug, rect, &TextStyles::Label, const_cast<char*>(label));
+		ITextControl* labelControl = new ITextControl(rect, label, TextStyles::Label);
 		pGraphics->AttachControl(labelControl);
-		knob->SetLabelControl(labelControl);
+		knob->SetLabelControl(labelControl, label);
 	}
 
 	return knob;
@@ -277,7 +281,6 @@ void Interface::OnPresetChanged()
 	if (mPresetControl != nullptr)
 	{
 		mPresetControl->SetDirty(false);
-		mPresetControl->Redraw();
 	}
 }
 

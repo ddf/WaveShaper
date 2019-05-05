@@ -46,5 +46,26 @@ enum ENoiseType
 enum ECtrlTags
 {
   kCtrlTagMeter = 0,
+  kMidiMapper,
   kNumCtrlTags
+};
+
+// used by the UI to send messages to the main plugin class.
+enum EMessages
+{
+  kSetMidiMapping,
+};
+
+// data payload for the SetMidiMapping message
+struct MidiMapping
+{
+  enum CC
+  {
+    kNone = 128
+  };
+
+  const int param;
+  const CC midiCC;
+
+  MidiMapping(int p, CC cc = kNone) : param(p), midiCC(cc) {}
 };

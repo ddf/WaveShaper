@@ -323,6 +323,7 @@
     <ClInclude Include="..\..\..\IPlug\IPlugUtilities.h" />
     <ClInclude Include="..\..\..\IPlug\IPlug_include_in_plug_hdr.h" />
     <ClInclude Include="..\..\..\IPlug\IPlug_include_in_plug_src.h" />
+    <ClInclude Include="..\..\minim-cpp\src\MultiChannelBuffer.h" />
     <ClInclude Include="..\Controls.h" />
     <ClInclude Include="..\FileLoader.h" />
     <ClInclude Include="..\Interface.h" />
@@ -414,6 +415,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\IPlug\IPlugTimer.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\MultiChannelBuffer.cpp" />
     <ClCompile Include="..\Controls.cpp" />
     <ClCompile Include="..\FileLoader.cpp" />
     <ClCompile Include="..\Interface.cpp" />

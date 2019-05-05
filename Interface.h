@@ -1,11 +1,12 @@
 #pragma once
 
 #include "config.h"
-#include "IPlugStructs.h"
+#include "IGraphicsStructs.h"
 #include "Params.h"
 
 class PLUG_CLASS_NAME;
 class IGraphics;
+class IEditorDelegate;
 class IControl;
 class KnobLineCoronaControl;
 class PeaksControl;
