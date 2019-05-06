@@ -2,13 +2,16 @@
 
 #include "IPlug_include_in_plug_hdr.h"
 #include "Params.h"
-#include "WaveShaper_DSP.h"
 #include "IVMeterControl.h"
 
 #include "Interface.h"
 #include "Controls.h"
 #include "FileLoader.h"
 #include "MultiChannelBuffer.h"
+
+#if IPLUG_DSP
+#include "DSP.h"
+#endif
 
 class WaveShaper : public IPlug
 {
@@ -64,8 +67,10 @@ public:
   void OnReset() override;
   void OnParamChange(int paramIdx) override;
   void OnIdle() override;
+
+  void SetParamBlend(int paramIdx, double begin, double end, double blend);
 private:
-  WaveShaperDSP mDSP {16};
+  WaveShaperDSP mDSP {2};
   IVMeterControl<1>::IVMeterBallistics mMeterBallistics {kCtrlTagMeter};
 #endif
 

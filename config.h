@@ -49,3 +49,6 @@
 #define APP_SIGNAL_VECTOR_SIZE 64
 
 #define ROBOTTO_FN "Roboto-Regular.ttf"
+
+#define SND_01_ID 101
+#define SND_01_FN "resources/snd/BadBassAmp.wav"

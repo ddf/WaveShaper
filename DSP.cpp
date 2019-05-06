@@ -1,8 +1,33 @@
 #include "DSP.h"
 
-//---------------------------------------
-//-- ADSR
-//---------------------------------------
+#include "Noise.h"
+#include "Multiplier.h"
+#include "Waves.h"
+#include "Wavetable.h"
+#include "Oscil.h"
+#include "TickRate.h"
+#include "Pan.h"
+#include "Multiplier.h"
+#include "Summer.h"
+#include "MultiChannelBuffer.h"
+
+// this is hacky, but we can't compile the UGen source file as its own compilation unit becuase the file name is the same,
+// so we simply directly include it here.
+#include "ugens\Waveshaper.h"
+#include "ugens\Waveshaper.cpp"
+
+#pragma region Settings
+extern const double kDefaultRate;
+extern const double kDefaultShape;
+extern const double kDefaultMod;
+extern const double kDefaultRange;
+extern const double kEnvAttackMin;
+extern const double kEnvDecayMin;
+extern const double kEnvSustainDefault;
+extern const double kEnvReleaseDefault;
+#pragma endregion
+
+#pragma region ASDR
 ADSR::ADSR()
 	: UGen()
 	, audio(*this, AUDIO)
@@ -121,3 +146,172 @@ void ADSR::uGenerate(float * channels, const int numChannels)
 		channels[i] = audio.getLastValues()[i] * amp;
 	}
 }
+#pragma endregion
+
+#pragma region WaveShaperDSP
+WaveShaperDSP::WaveShaperDSP(int channelCount)
+  : mVolume(1.)
+  , mAttack(kEnvAttackMin)
+  , mDecay(kEnvDecayMin)
+  , mSustain(kEnvSustainDefault / 100.0)
+  , mRelease(kEnvReleaseDefault)
+  , mNoiseTint(Minim::Noise::eTintPink)
+  , mMod(kDefaultMod)
+  , mRate(kDefaultRate)
+  , mRange(kDefaultRange)
+  , mShape(kDefaultShape)
+  , mShaperSize(0)
+  , mShaperMapValue(0)
+  , mMainSignalVol(0)
+{
+  mNoizeRate = new Minim::TickRate(mRate);
+  mNoizeRate->setInterpolation(true);
+
+  mRateCtrl.activate(0, 0, 0);
+  mRateCtrl.patch(mNoizeRate->value);
+
+  mNoize = new Minim::Noise(1.0f, mNoiseTint);
+
+  //		const float startRange = 0.05f;
+  //		mRangeCtrl.activate( 0.f, startRange, startRange );
+  //		mRangeCtrl.patch( mNoize->offset );
+
+  mNoizeAmp = new Minim::Multiplier(1.f);
+
+  mNoizeShaperLeft = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(512), true);
+  mNoizeShaperRight = new Minim::WaveShaper(1.0f, 1.0f, new Minim::Wavetable(512), true);
+
+  mShapeCtrl.activate(0.f, mShape, mShape);
+  //		mShapeCtrl.patch( mNoizeShaperLeft->mapAmplitude );
+  //		mShapeCtrl.patch( mNoizeShaperRight->mapAmplitude );
+
+  mPanLeft = new Minim::Pan(-1.f);
+  mPanRight = new Minim::Pan(1.f);
+
+  mNoizeMod = new Minim::Oscil(mMod, 1.f, Minim::Waves::SINE());
+  // mNoizeMod->offset.setLastValue( 1.f );
+  // set phase at 0.25 so that when we "pause" the modulation, it will output 1.0
+  mNoizeMod->phase.setLastValue(0.25f);
+
+  mModCtrl.activate(0.f, mMod, mMod);
+  mModCtrl.patch(mNoizeMod->frequency);
+
+  mShapeCtrl.patch(mNoizeMod->amplitude);
+
+  mNoizeMod->patch(mNoizeAmp->amplitude);
+
+  mNoizeSum = new Minim::Summer();
+
+  mNoizeOffset = new Minim::Constant(0.f);
+  mRangeCtrl.activate(0.f, mRange, mRange);
+  mRangeCtrl.patch(mNoizeOffset->value);
+  mNoizeOffset->patch(*mNoizeSum);
+
+  // noise generator
+  mNoize->patch(*mNoizeRate).patch(*mNoizeAmp).patch(*mNoizeSum);
+
+  // left shaper
+  mNoizeSum->patch(*mNoizeShaperLeft).patch(*mPanLeft);
+  // right right
+  mNoizeSum->patch(*mNoizeShaperRight).patch(*mPanRight);
+
+  mMainSignal = new Minim::Summer();
+
+  mPanLeft->patch(*mMainSignal);
+  mPanRight->patch(*mMainSignal);
+
+  mMainSignal->patch(mEnvelope).patch(mMainSignalVol);
+  mMainSignalVol.setAudioChannelCount(channelCount);
+}
+
+WaveShaperDSP::~WaveShaperDSP()
+{
+  delete mNoize;
+  delete mNoizeRate;
+  delete mNoizeAmp;
+  delete mNoizeSum;
+  delete mNoizeOffset;
+  delete mNoizeShaperLeft;
+  delete mNoizeShaperRight;
+  delete mPanLeft;
+  delete mPanRight;
+  delete mNoizeMod;
+  delete mMainSignal;
+}
+
+void WaveShaperDSP::ProcessBlock(sample** inputs, sample** outputs, int nOutputs, int nFrames)
+{
+  sample* out1 = outputs[0];
+  sample* out2 = outputs[1];
+
+  float result[2];
+  for (int s = 0; s < nFrames; ++s, ++out1, ++out2)
+  {
+    while (!mMidiQueue.Empty())
+    {
+      IMidiMsg& pMsg = mMidiQueue.Peek();
+      if (pMsg.mOffset > s) break;
+
+      switch (pMsg.StatusMsg())
+      {
+        case IMidiMsg::kNoteOn:
+          // make sure this is a real NoteOn
+          if (pMsg.Velocity() > 0)
+          {
+            mMidiNotes.push_back(pMsg);
+            if (!mEnvelope.isOn())
+            {
+              mEnvelope.noteOn(pMsg.Velocity() / 127.0f, mAttack, mDecay, mSustain, mRelease);
+              mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), mRate);
+            }
+            break;
+          }
+          // fallthru in the case that a NoteOn is supposed to be treated like a NoteOff
+
+        case IMidiMsg::kNoteOff:
+          for (auto iter = mMidiNotes.crbegin(); iter != mMidiNotes.crend(); ++iter)
+          {
+            // remove the most recent note on with the same pitch
+            if (pMsg.NoteNumber() == iter->NoteNumber())
+            {
+              mMidiNotes.erase((iter + 1).base());
+              break;
+            }
+          }
+
+          if (mMidiNotes.empty())
+          {
+            mEnvelope.noteOff();
+            mRateCtrl.activate(mEnvelope.getRelease(), mRateCtrl.getAmp(), 0);
+          }
+          break;
+      }
+
+      mMidiQueue.Remove();
+    }
+
+    mNoize->setTint(mNoiseTint);
+    mMainSignalVol.amplitude.setLastValue(mVolume);
+    mMainSignalVol.tick(result, 2);
+
+    *out1 = result[0];
+    *out2 = result[0];
+  }
+
+  mShaperMapValue = mNoizeShaperLeft->getLastMapValue();
+}
+
+void WaveShaperDSP::SetWavetables(Minim::MultiChannelBuffer& buffer)
+{
+  mNoizeShaperLeft->getWavetable().setWaveform(buffer.getChannel(0), buffer.getBufferSize());
+  if (buffer.getChannelCount() == 1)
+  {
+    mNoizeShaperRight->getWavetable().setWaveform(buffer.getChannel(0), buffer.getBufferSize());
+  }
+  else
+  {
+    mNoizeShaperRight->getWavetable().setWaveform(buffer.getChannel(1), buffer.getBufferSize());
+  }
+}
+
+#pragma endregion

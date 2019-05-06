@@ -2,6 +2,7 @@
 #include "IPlug_include_in_plug_src.h"
 #include "IControls.h"
 #include "Controls.h"
+#include "Interp.h"
 
 // The number of presets/programs
 const int kNumPrograms = 1;
@@ -12,35 +13,35 @@ const IMidiMsg::EControlChangeMsg kUnmappedParam = (IMidiMsg::EControlChangeMsg)
 
 #pragma region Param Settings
 // move these to sliders at some point.
-const double kDefaultMod = 0.5;
-const double kMinMod = 0.;
-const double kMaxMod = 120.;
+extern const double kDefaultMod = 0.5;
+extern const double kMinMod = 0.;
+extern const double kMaxMod = 120.;
 
-const double kDefaultRate = 0.0005;
-const double kMinRate = 0.00001;
-const double kMaxRate = 0.001;
+extern const double kDefaultRate = 0.0005;
+extern const double kMinRate = 0.00001;
+extern const double kMaxRate = 0.001;
 
 // range is the noise offset, which basically determines where in the file the center point of scrubbing is.
-const double kDefaultRange = 0;
-const double kMinRange = -1.; // 0.01;
-const double kMaxRange = 1.0; // 0.5f;
+extern const double kDefaultRange = 0;
+extern const double kMinRange = -1.; // 0.01;
+extern const double kMaxRange = 1.0; // 0.5f;
 
 // shape is the mapAmplitude, which basically determines how many samples from the source are scrubbed over
-const double kDefaultShape = 0.1;
-const double kMinShape = 0.05;
-const double kMaxShape = 0.35;
+extern const double kDefaultShape = 0.1;
+extern const double kMinShape = 0.05;
+extern const double kMaxShape = 0.35;
 
-const double kEnvAttackMin = 0.005;
-const double kEnvAttackMax = 2;
-const double kEnvDecayMin = 0.005;
-const double kEnvDecayMax = 2;
-const double kEnvSustainMin = 0;
-const double kEnvSustainMax = 100;
-const double kEnvReleaseMin = 0.005;
-const double kEnvReleaseMax = 5;
+extern const double kEnvAttackMin = 0.005;
+extern const double kEnvAttackMax = 2;
+extern const double kEnvDecayMin = 0.005;
+extern const double kEnvDecayMax = 2;
+extern const double kEnvSustainMin = 0;
+extern const double kEnvSustainMax = 100;
+extern const double kEnvReleaseMin = 0.005;
+extern const double kEnvReleaseMax = 5;
 
-const double kEnvSustainDefault = 75;
-const double kEnvReleaseDefault = 0.25;
+extern const double kEnvSustainDefault = 75;
+extern const double kEnvReleaseDefault = 0.25;
 
 const double kSecondsStep = 0.005;
 const char * kSecondsLabel = "s";
@@ -50,9 +51,9 @@ const char * kPercentLabel = "%";
 #pragma  endregion
 
 WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
-: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
+: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
 #if IPLUG_EDITOR
-mInterface(this)
+, mInterface(this)
 #endif
 {
   // Define parameter ranges, display units, labels.
@@ -82,6 +83,12 @@ mInterface(this)
     GetParam(kEnvRelease)->InitDouble("Release", kEnvReleaseDefault, kEnvReleaseMin, kEnvReleaseMax, kSecondsStep, kSecondsLabel, IParam::kFlagsNone, "ADSR");
   }
 
+  mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
+
+#if IPLUG_DSP
+  mDSP.SetWavetables(mBuffer);
+#endif
+
 #if IPLUG_EDITOR // All UI methods and member variables should be within an IPLUG_EDITOR guard, should you want distributed UI
   mMakeGraphicsFunc = [&]() {
     return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, 1.);
@@ -89,6 +96,7 @@ mInterface(this)
   
   mLayoutFunc = [&](IGraphics* pGraphics) {
     mInterface.CreateControls(pGraphics);
+    mInterface.RebuildPeaks(mBuffer);
 
 //    pGraphics->AttachCornerResizer(kUIResizerScale, false);
 //    pGraphics->AttachPanelBackground(COLOR_GRAY);
@@ -114,14 +122,13 @@ mInterface(this)
 #if IPLUG_DSP
 void WaveShaper::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
-  const double gain = DBToAmp(GetParam(kVolume)->Value());
   const int nChans = NOutChansConnected();
 
   mDSP.ProcessBlock(inputs, outputs, 2, nFrames);
   
   for (auto s = 0; s < nFrames; s++) {
     for (auto c = 0; c < nChans; c++) {
-      outputs[c][s] = outputs[c][s] * gain;
+      outputs[c][s] = outputs[c][s];
     }
   }
 
@@ -167,42 +174,124 @@ handle:
 
 void WaveShaper::OnParamChange(int paramIdx)
 {
+
+  IParam* param = GetParam(paramIdx);
   switch (paramIdx)
-  {      
+  {
+    case kVolume:
+      mDSP.SetVolume(param->Value() == kVolumeMin ? 0 : param->DBToAmp());
+      break;
+
+    case kNoiseType:
+      switch (param->Int())
+      {
+        case NT_White: mDSP.SetNoiseTint(Minim::Noise::eTintWhite); break;
+        case NT_Pink:  mDSP.SetNoiseTint(Minim::Noise::eTintPink);  break;
+        case NT_Brown: mDSP.SetNoiseTint(Minim::Noise::eTintBrown); break;
+      }
+      break;
+
+    case kNoiseAmpMod:
+      mDSP.SetNoiseMod(param->Value());
+      break;
+
+    case kNoiseRate:
+      mDSP.SetNoiseRate(param->Value());
+      break;
+
+    case kNoiseRange:
+      mDSP.SetNoiseRange(param->Value());
+      break;
+
+    case kNoiseShape:
+      mDSP.SetNoiseShape(param->Value());
+      break;
+
+    case kNoiseSnapshot:
+    {
+      int first = (int)param->Value();
+      float blend = param->Value() - first;
+      const NoiseSnapshot& firstSnap = GetNoiseSnapshot(first);
+      const NoiseSnapshot& secondSnap = first < kNoiseSnapshotMax ? GetNoiseSnapshot(first + 1) : GetNoiseSnapshot(first);
+      SetParamBlend(kNoiseAmpMod, firstSnap.AmpMod, secondSnap.AmpMod, blend);
+      SetParamBlend(kNoiseRange, firstSnap.Range, secondSnap.Range, blend);
+      SetParamBlend(kNoiseRate, firstSnap.Rate, secondSnap.Rate, blend);
+      SetParamBlend(kNoiseShape, firstSnap.Shape, secondSnap.Shape, blend);
+    }
+    break;
+
+    case kEnvAttack:
+    {
+      mDSP.SetAttack(param->Value());
+    }
+    break;
+
+    case kEnvDecay:
+    {
+      mDSP.SetDecay(param->Value());
+    }
+    break;
+
+    case kEnvSustain:
+    {
+      mDSP.SetSustain(param->Value() / 100.0);
+    }
+    break;
+
+    case kEnvRelease:
+    {
+      mDSP.SetRelease(param->Value());
+    }
+    break;
+
     default:
       break;
   }
+
+  // #TODO broadcast param change
+  //BroadcastParamChange(paramIdx);
+}
+
+void WaveShaper::SetParamBlend(int paramIdx, double begin, double end, double blend)
+{
+  BeginInformHostOfParamChange(paramIdx);
+  double value = Lerp(begin, end, blend);
+  GetParam(paramIdx)->Set(value);
+  value = GetParam(paramIdx)->ToNormalized(value);
+  InformHostOfParamChange(paramIdx, value);
+  EndInformHostOfParamChange(paramIdx);
+
+  // GetGUI()->SetParameterFromPlug(paramIdx, value, true);
+
+  // kick of the actual changes and get the change broadcasted
+  OnParamChange(paramIdx);
 }
 #endif
 
+// #TODO these need to be transmitted to the UI, not polled from the UI
 float WaveShaper::GetNoiseOffset() const
 {
-  // #TODO GetNoiseOffset
-  return 0; // mNoizeOffset->value.getLastValue();
+  return mDSP.GetNoiseOffset();
 }
 
 float WaveShaper::GetNoiseRate() const
 {
-  // #TODO GetNoiseRate
-  return 0; // mNoizeRate->getLastValues()[0];
+  return mDSP.GetNoiseRate();
 }
 
 float WaveShaper::GetShape() const
 {
-  // #TODO GetShape
-  return 0; // mShapeCtrl.getLastValues()[0];
+  return mDSP.GetShape();
 }
 
 float WaveShaper::GetShaperSize() const
 {
-  // #TODO GetShaperSize
-  return 1024; // mNoizeShaperLeft->getWavetable().size();
+  return mDSP.GetShaperSize();
 }
 
 float WaveShaper::GetShaperMapValue() const
 {
-  // #TODO GetShaperMapValue
-  return 0; // mNoizeShaperLeft->getLastMapValue();
+  return mDSP.GetShaperMapValue();
 }
 
 void WaveShaper::UpdateNoiseSnapshot(int idx)
@@ -261,16 +350,7 @@ void WaveShaper::HandleLoad(WDL_String* fileName, WDL_String* directory)
     mFileLoader.Load(fileName->Get(), mBuffer);
     mInterface.RebuildPeaks(mBuffer);
 
-    // #TODO update the DSP
-    //mNoizeShaperLeft->getWavetable().setWaveform(mBuffer.getChannel(0), mBuffer.getBufferSize());
-    //if (mBuffer.getChannelCount() == 1)
-    //{
-    //  mNoizeShaperRight->getWavetable().setWaveform(mBuffer.getChannel(0), mBuffer.getBufferSize());
-    //}
-    //else
-    //{
-    //  mNoizeShaperRight->getWavetable().setWaveform(mBuffer.getChannel(1), mBuffer.getBufferSize());
-    //}
+    mDSP.SetWavetables(mBuffer);
   }
 }
 

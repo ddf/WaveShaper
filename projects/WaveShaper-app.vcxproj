@@ -323,8 +323,24 @@
     <ClInclude Include="..\..\..\IPlug\IPlugUtilities.h" />
     <ClInclude Include="..\..\..\IPlug\IPlug_include_in_plug_hdr.h" />
     <ClInclude Include="..\..\..\IPlug\IPlug_include_in_plug_src.h" />
+    <ClInclude Include="..\..\minim-cpp\src\AudioSource.h" />
+    <ClInclude Include="..\..\minim-cpp\src\Logging.h" />
     <ClInclude Include="..\..\minim-cpp\src\MultiChannelBuffer.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Constant.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Line.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Multiplier.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Noise.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Oscil.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Pan.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Summer.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\TickRate.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\UGen.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Waveform.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Waves.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Waveshaper.h" />
+    <ClInclude Include="..\..\minim-cpp\src\ugens\Wavetable.h" />
     <ClInclude Include="..\Controls.h" />
+    <ClInclude Include="..\DSP.h" />
     <ClInclude Include="..\FileLoader.h" />
     <ClInclude Include="..\Interface.h" />
     <ClInclude Include="..\KnobLineCoronaControl.h" />
@@ -415,8 +431,22 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\IPlug\IPlugTimer.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\AudioSource.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\Logging.cpp" />
     <ClCompile Include="..\..\minim-cpp\src\MultiChannelBuffer.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Line.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Multiplier.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Noise.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Oscil.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Pan.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Summer.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\TickRate.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\UGen.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Waves.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Waveshaper.cpp" />
+    <ClCompile Include="..\..\minim-cpp\src\ugens\Wavetable.cpp" />
     <ClCompile Include="..\Controls.cpp" />
+    <ClCompile Include="..\DSP.cpp" />
     <ClCompile Include="..\FileLoader.cpp" />
     <ClCompile Include="..\Interface.cpp" />
     <ClCompile Include="..\KnobLineCoronaControl.cpp" />

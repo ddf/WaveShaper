@@ -135,21 +135,22 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "#include ""..\\config.h""\r\n"
-    "ROBOTTO_FN TTF ROBOTTO_FN\0"
+    "ROBOTTO_FN TTF ROBOTTO_FN\r\n"
+    "SND_01_ID WAVE SND_01_FN\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -179,7 +180,6 @@ BEGIN
     "E",            ID_LIVE_EDIT,           VIRTKEY, CONTROL, NOINVERT
 END
 
-/////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -187,8 +187,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 0,0,1,0
-PRODUCTVERSION 0,0,1,0
+ FILEVERSION 0,0,1,0
+ PRODUCTVERSION 0,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -222,6 +222,8 @@ END
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 
+
+
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -229,6 +231,7 @@ END
 //
 #include "..\config.h"
 ROBOTTO_FN TTF ROBOTTO_FN
+SND_01_ID WAVE SND_01_FN
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
