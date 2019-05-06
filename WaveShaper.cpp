@@ -56,6 +56,15 @@ WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
 , mInterface(this)
 #endif
 {
+
+  for (int i = 0; i < kNoiseSnapshotCount; ++i)
+  {
+    mNoiseSnapshots[i].AmpMod = kDefaultMod;
+    mNoiseSnapshots[i].Range = kDefaultRange;
+    mNoiseSnapshots[i].Rate = kDefaultRate;
+    mNoiseSnapshots[i].Shape = kDefaultShape;
+  }
+
   // Define parameter ranges, display units, labels.
   //arguments are: name, defaultVal, minVal, maxVal, step, label
   GetParam(kVolume)->InitDouble("Volume", kVolumeDefault, kVolumeMin, kVolumeMax, 0.1, "dB");
