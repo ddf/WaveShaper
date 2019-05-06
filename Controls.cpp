@@ -683,6 +683,7 @@ PlayStopControl::PlayStopControl(IRECT rect, IColor backgroundColor, IColor fore
 {
 	mIconRect = mRECT.GetPadded(-8);
 	mDblAsSingleClick = true;
+  mIgnoreMouse = false;
 }
 
 void PlayStopControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
