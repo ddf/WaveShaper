@@ -312,6 +312,7 @@ void WaveShaperDSP::SetWavetables(Minim::MultiChannelBuffer& buffer)
   {
     mNoizeShaperRight->getWavetable().setWaveform(buffer.getChannel(1), buffer.getBufferSize());
   }
+  mShaperSize = buffer.getBufferSize();
 }
 
 #pragma endregion
