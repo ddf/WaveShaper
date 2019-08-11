@@ -114,7 +114,8 @@ public:
 private:
 
   int mParamX, mParamY;
-  int mControlX, mControlY;
+  IControl* mControlX;
+  IControl* mControlY;
 	IRECT mPointRect;
 	// where the point current is.
 	int mPointX, mPointY;
@@ -150,7 +151,7 @@ public:
 	SnapshotSlider(int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
 
 	void Draw(IGraphics& g) override;
-	void SetDirty(bool pushParamToPlug = true) override;
+  void SetDirty(bool triggerAction = true, int valIdx = kNoValIdx);
 
 private:
   IBlend mBlend;

@@ -128,12 +128,12 @@ namespace TextStyles
 	char * ControlFont = 0;
 	char * LabelFont = "Helvetica Neue";
 #endif
-	const IText  Title(LabelTextSize+8, Color::Title, LabelFont, IText::kAlignFar);
-	const IText  Label(LabelTextSize, Color::Label, LabelFont, IText::kAlignCenter);
-	const IText  Enum(ControlTextSize, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  TextBox(ControlTextSize, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  StepMode(ControlTextSize-2, Color::Label, ControlFont, IText::kAlignCenter, IText::kVAlignMiddle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  ButtonLabel(ButtonTextSize, Color::Label, ControlFont, IText::kAlignCenter);
+	const IText  Title(LabelTextSize+8, Color::Title, LabelFont, EAlign::Far);
+	const IText  Label(LabelTextSize, Color::Label, LabelFont, EAlign::Center);
+	const IText  Enum(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  TextBox(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  StepMode(ControlTextSize-2, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+	const IText  ButtonLabel(ButtonTextSize, Color::Label, ControlFont, EAlign::Center);
 }
 
 namespace Strings
@@ -169,8 +169,8 @@ Interface::~Interface()
 
 void Interface::CreateControls(IGraphics* pGraphics)
 {
-  pGraphics->LoadFont(TextStyles::ControlFont, "Segoe UI", kTextStyleBold);
-  pGraphics->LoadFont(TextStyles::LabelFont, "Segoe UI", kTextStyleNormal);
+  pGraphics->LoadFont(TextStyles::ControlFont, "Segoe UI", ETextStyle::Bold);
+  pGraphics->LoadFont(TextStyles::LabelFont, "Segoe UI", ETextStyle::Normal);
 	pGraphics->HandleMouseOver(true);
 
 	pGraphics->AttachPanelBackground(Color::Background);

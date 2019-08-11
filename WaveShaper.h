@@ -71,7 +71,7 @@ public:
   void SetParamBlend(int paramIdx, double begin, double end, double blend);
 private:
   WaveShaperDSP mDSP {2};
-  IVMeterControl<1>::IVMeterBallistics mMeterBallistics {kCtrlTagMeter};
+  IVMeterControl<1>::Sender mMeterBallistics {kCtrlTagMeter};
 #endif
 
 #if IPLUG_EDITOR

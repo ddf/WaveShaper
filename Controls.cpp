@@ -27,7 +27,7 @@ EnumControl::EnumControl(IRECT rect, int paramIdx, const IText& textStyle)
 
 void EnumControl::OnInit()
 {
-  if (mParamIdx < kNumParams)
+  if (GetParamIdx() < kNumParams)
   {
     mMin = GetParam()->GetMin();
     mMax = GetParam()->GetMax();
@@ -48,7 +48,7 @@ void EnumControl::Draw(IGraphics& g)
 	// buttons
 	IColor buttonColor = mText.mTextEntryFGColor;
   // #TODO get current preset index
-  const int value = mParamIdx < kNumParams ? GetParam()->Int() : 0; // mPlug->GetCurrentPresetIdx();
+  const int value = GetParamIdx() < kNumParams ? GetParam()->Int() : 0; // mPlug->GetCurrentPresetIdx();
 	if (value == mMin || IsGrayed())
 	{
 		buttonColor.R *= 0.5f; buttonColor.G *= 0.5f; buttonColor.B *= 0.5f;
@@ -63,7 +63,7 @@ void EnumControl::Draw(IGraphics& g)
 	g.FillTriangle(buttonColor, mIncrementRect.L, mIncrementRect.T, mIncrementRect.R, mIncrementRect.MH(), mIncrementRect.L, mIncrementRect.B, 0);
 
 	char* label = 0;
-	if (mParamIdx < kNumParams)
+	if (GetParamIdx() < kNumParams)
 	{
     WDL_String display;
 		GetParam()->GetDisplayForHost(display);
@@ -94,7 +94,7 @@ void EnumControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 	{
 		if (mPopupRect.Contains(x, y))
 		{
-			if (mParamIdx < kNumParams)
+			if (GetParamIdx() < kNumParams)
 			{
 				PromptUserInput();
 			}
@@ -132,9 +132,9 @@ void EnumControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 			StepValue(-1);
 		}
 	}
-	else if (pMod.R && mParamIdx < kNumParams)
+	else if (pMod.R && GetParamIdx() < kNumParams)
 	{
-		Interface::BeginMIDILearn(GetDelegate(), mParamIdx, -1, x, y);
+		Interface::BeginMIDILearn(GetDelegate(), GetParamIdx(), -1, x, y);
 	}
 }
 
@@ -145,18 +145,20 @@ void EnumControl::OnMouseWheel(float x, float y, const IMouseMod& pMod, float d)
 
 void EnumControl::StepValue(int amount)
 {
-	const bool isParam = mParamIdx < kNumParams;
+	const bool isParam = GetParamIdx() < kNumParams;
 	if (isParam)
 	{
 		int count = GetParam()->NDisplayTexts();
+    double value = GetValue();
 		if (count > 1)
 		{
-			mValue += 1.0 / (double)(count - 1) * amount;
+			value += 1.0 / (double)(count - 1) * amount;
 		}
 		else
 		{
-			mValue += 1.0;
+			value += 1.0;
 		}
+    SetValue(value);
 	}
 	else
 	{
@@ -192,7 +194,7 @@ BangControl::BangControl(IRECT iRect, Action action, IColor onColor, IColor offC
 
 void BangControl::Draw(IGraphics& g)
 {
-	if (mValue > 0.5)
+	if (GetValue() > 0.5)
 	{
 		g.FillRect(mOnColor, mRECT);
 	}
@@ -224,7 +226,7 @@ void BangControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
 	if (mAction == ActionBangParam)
 	{
-		mValue = 1;
+		SetValue(1);
 		SetDirty();
 	}
 	else // not an actual parameter, direct-cast this bang on click
@@ -235,7 +237,7 @@ void BangControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 		{
 			WDL_String fileName("");
 			WDL_String directory("");
-			GetUI()->PromptForFile(fileName, directory, kFileSave, mFileTypes);
+			GetUI()->PromptForFile(fileName, directory, EFileAction::Save, mFileTypes);
 			if (fileName.GetLength() > 0)
 			{
 				PLUG_CLASS_NAME * plug = static_cast<PLUG_CLASS_NAME*>(GetDelegate());
@@ -251,7 +253,7 @@ void BangControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 		{
 			WDL_String fileName("");
 			WDL_String directory("");
-			GetUI()->PromptForFile(fileName, directory, kFileOpen, mFileTypes);
+			GetUI()->PromptForFile(fileName, directory, EFileAction::Open, mFileTypes);
 			if (fileName.GetLength() > 0)
 			{
 				PLUG_CLASS_NAME* plug = static_cast<PLUG_CLASS_NAME*>(GetDelegate());
@@ -281,7 +283,7 @@ void BangControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 			{
 				plug->HandleAction(mAction);
 			}
-			mValue = 1;
+			SetValue(1);
 			SetDirty(false);
 		}
     break;
@@ -292,9 +294,9 @@ void BangControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 
 void BangControl::OnMouseUp(float x, float y, const IMouseMod& pMod)
 {
-	if (mParamIdx < kNumParams)
+	if (GetParamIdx() < kNumParams)
 	{
-		mValue = 0;
+    SetValue(0);
 		SetDirty();
 	}
 }
@@ -396,7 +398,7 @@ void ShaperVizControl::Draw(IGraphics& g)
 		const float lx = Lerp(mRECT.L, mRECT.R, mapLookup);
 		g.DrawLine(mLineColor, lx, y1, lx, y2-1);
 
-		IBlend blend(kBlendNone, 0.4f);
+		IBlend blend(EBlend::None, 0.4f);
 		if (x1 < mRECT.L)
 		{
 			x1 += waveWidth;
@@ -483,10 +485,10 @@ public:
 
   void Draw(IGraphics& g) {}
 
-  void SetValueFromDelegate(double value) override
+  void SetValueFromDelegate(double value, int paramIdx = 0) override
   {
-    IControl::SetValueFromDelegate(value);
-    mParent.OnParamValueFromPlug(mParamIdx, value);
+    IControl::SetValueFromDelegate(value, paramIdx);
+    mParent.OnParamValueFromPlug(GetParamIdx(paramIdx), value);
   }
 
 private:
@@ -536,8 +538,8 @@ void XYControl::OnMouseDrag(float x, float y, float dX, float dY, const IMouseMo
 
 		mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
-    GetUI()->GetControl(mControlX)->SetValueFromUserInput(Map(mPointX, mPointRect.L, mPointRect.R, 0, 1));
-    GetUI()->GetControl(mControlY)->SetValueFromUserInput(Map(mPointY, mPointRect.B, mPointRect.T, 0, 1));
+    mControlX->SetValueFromUserInput(Map(mPointX, mPointRect.L, mPointRect.R, 0, 1));
+    mControlY->SetValueFromUserInput(Map(mPointY, mPointRect.B, mPointRect.T, 0, 1));
 		SetDirty(false);
 	}
 }
@@ -595,7 +597,7 @@ void SnapshotControl::Draw(IGraphics& g)
 	double weight = abs(GetParam()->Value() - mSnapshotIdx);
 	if (weight < 1)
 	{
-		IBlend blend(kBlendNone, 1 - weight);
+		IBlend blend(EBlend::None, 1 - weight);
 		IColor border(255, 200, 200, 200);
 		g.DrawLine(border, mRECT.L, mRECT.T, mRECT.R, mRECT.T, &blend);
 		g.DrawLine(border, mRECT.R, mRECT.T+1, mRECT.R, mRECT.B-1, &blend);
@@ -605,7 +607,7 @@ void SnapshotControl::Draw(IGraphics& g)
 
 	if (mHighlight > 0)
 	{
-		IBlend blend(kBlendNone, mHighlight);
+		IBlend blend(EBlend::None, mHighlight);
 		g.FillRect(COLOR_WHITE, mRECT, &blend);
 		mHighlight -= 0.1f;
     SetDirty(false);
@@ -616,7 +618,7 @@ void SnapshotControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
 	if (pMod.L)
 	{
-		mValue = GetParam()->ToNormalized(mSnapshotIdx);
+    SetValue(GetParam()->ToNormalized(mSnapshotIdx));
 		mHighlight = 1;
 		SetDirty();
 		//GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
@@ -631,7 +633,7 @@ void SnapshotControl::Update()
 		shaper->UpdateNoiseSnapshot(mSnapshotIdx);
 	}
 
-	mValue = GetParam()->ToNormalized(mSnapshotIdx);
+  SetValue(GetParam()->ToNormalized(mSnapshotIdx));
 	mHighlight = 1;
 	SetDirty();
 	//GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
@@ -646,7 +648,7 @@ SnapshotSlider::SnapshotSlider(int x, int y, int len, int handleRadius, int para
 	, mLineColor(lineColor)
 	, mHandleColor(handleColor)
 {
-	mBlend.mMethod = kBlendNone;
+	mBlend.mMethod = EBlend::None;
 	mBlend.mWeight = 0.75f;
 }
 
@@ -664,9 +666,9 @@ void SnapshotSlider::Draw(IGraphics& g)
 	//pGraphics->FillTriangle(&mHandleColor, handle.L + 4, handleCY, handle.R - 6, handle.T, handle.R - 6, handle.B, &mBlend);
 }
 
-void SnapshotSlider::SetDirty(bool pushParamToPlug /*= true*/)
+void SnapshotSlider::SetDirty(bool pushParamToPlug /*= true*/, int paramIdx)
 {
-	IControl::SetDirty(pushParamToPlug);
+	IControl::SetDirty(pushParamToPlug, paramIdx);
 
 	//if (pushParamToPlug)
 	//{
@@ -689,15 +691,15 @@ PlayStopControl::PlayStopControl(IRECT rect, IColor backgroundColor, IColor fore
 void PlayStopControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
 	IMidiMsg msg;
-	if (mValue)
+	if (GetValue())
 	{
 		msg.MakeNoteOffMsg(0, 0);
-		mValue = 0;
+    SetValue(0);
 	}
 	else
 	{
 		msg.MakeNoteOnMsg(0, 127, 0);
-		mValue = 1;
+    SetValue(1);
 	}
   GetDelegate()->SendMidiMsgFromUI(msg);
 	SetDirty(false);
@@ -707,7 +709,7 @@ void PlayStopControl::Draw(IGraphics& g)
 {
 	IPanelControl::Draw(g);
 
-	if (mValue)
+	if (GetValue())
 	{
 		g.FillRect(mForeground, mIconRect);
 	}
