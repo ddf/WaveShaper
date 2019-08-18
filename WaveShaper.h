@@ -13,10 +13,13 @@
 #include "DSP.h"
 #endif
 
-class WaveShaper : public IPlug
+using namespace iplug;
+using namespace igraphics;
+
+class WaveShaper : public Plugin
 {
 public:
-  WaveShaper(IPlugInstanceInfo instanceInfo);
+  WaveShaper(const InstanceInfo& instanceInfo);
 
   // called from the UI for the Load and Save buttons.
   // we need to wrap LoadProgramFromFXP and SaveProgramAsFXP

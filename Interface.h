@@ -5,9 +5,6 @@
 #include "Params.h"
 
 class PLUG_CLASS_NAME;
-class IGraphics;
-class IEditorDelegate;
-class IControl;
 class KnobLineCoronaControl;
 class PeaksControl;
 class SnapshotControl;
@@ -16,6 +13,14 @@ namespace Minim
 {
 	class MultiChannelBuffer;
 }
+
+namespace iplug
+{
+  class IEditorDelegate;
+}
+
+using namespace iplug;
+using namespace igraphics;
 
 class Interface
 {

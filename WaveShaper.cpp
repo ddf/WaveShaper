@@ -50,8 +50,8 @@ const double kPercentStep = 1;
 const char * kPercentLabel = "%";
 #pragma  endregion
 
-WaveShaper::WaveShaper(IPlugInstanceInfo instanceInfo)
-: IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo)
+WaveShaper::WaveShaper(const InstanceInfo& instanceInfo)
+: Plugin(instanceInfo, MakeConfig(kNumParams, kNumPrograms))
 #if IPLUG_EDITOR
 , mInterface(this)
 #endif

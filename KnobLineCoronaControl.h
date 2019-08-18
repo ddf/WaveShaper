@@ -1,8 +1,11 @@
-#pragma  once
+#pragma once
 
 #include "IControl.h"
 #include "IGraphicsConstants.h"
 #include "MidiMapper.h"
+
+using namespace iplug;
+using namespace igraphics;
 
 class KnobLineCoronaControl : public IKnobControlBase
 {

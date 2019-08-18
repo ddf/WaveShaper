@@ -2,6 +2,8 @@
 
 #include "IControl.h"
 
+using namespace iplug;
+using namespace igraphics;
 
 class EnumControl : public IControl
 {

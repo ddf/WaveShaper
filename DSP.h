@@ -10,6 +10,8 @@
 
 #include <vector>
 
+using namespace iplug;
+
 class ADSR : public Minim::UGen
 {
 public:
