@@ -116,24 +116,26 @@ namespace Color
 namespace TextStyles
 {
 #ifdef OS_WIN
-	const float ControlTextSize = 12;
-	const float LabelTextSize = 12;
-	const float ButtonTextSize = 12;
-	const char * ControlFont = "ControlFont";
-	const char * LabelFont = "LabelFont";
+  const float ControlTextSize = 14;
+  const float LabelTextSize = 14;
+  const float ButtonTextSize = 14;
+  const char* ControlFont = "ControlFont";
+  const char* LabelFont = "LabelFont";
+  const char* FontName = "Segoe UI";
 #else
-	const int ControlTextSize = 14;
-	const int LabelTextSize = 12;
-	const int ButtonTextSize = 12;
-	char * ControlFont = 0;
-	char * LabelFont = "Helvetica Neue";
+  const int ControlTextSize = 14;
+  const int LabelTextSize = 12;
+  const int ButtonTextSize = 12;
+  const char* ControlFont = "ControlFont";
+  const char* LabelFont = "LabelFont";
+  const char* FontName = "Helvetica Neue";
 #endif
-	const IText  Title(LabelTextSize+8, Color::Title, LabelFont, EAlign::Far);
-	const IText  Label(LabelTextSize, Color::Label, LabelFont, EAlign::Center);
-	const IText  Enum(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  TextBox(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  StepMode(ControlTextSize-2, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
-	const IText  ButtonLabel(ButtonTextSize, Color::Label, ControlFont, EAlign::Center);
+  const IText Title(LabelTextSize + 8, Color::Title, LabelFont, EAlign::Far);
+  const IText Label(LabelTextSize, Color::Label, LabelFont, EAlign::Center);
+  const IText Enum(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+  const IText TextBox(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+  const IText StepMode(ControlTextSize - 2, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
+  const IText ButtonLabel(ButtonTextSize, Color::Label, ControlFont, EAlign::Center);
 }
 
 namespace Strings
@@ -169,62 +171,62 @@ Interface::~Interface()
 
 void Interface::CreateControls(IGraphics* pGraphics)
 {
-  pGraphics->LoadFont(TextStyles::ControlFont, "Segoe UI", ETextStyle::Bold);
-  pGraphics->LoadFont(TextStyles::LabelFont, "Segoe UI", ETextStyle::Normal);
-	pGraphics->HandleMouseOver(true);
+  pGraphics->LoadFont(TextStyles::ControlFont, TextStyles::FontName, ETextStyle::Bold);
+  pGraphics->LoadFont(TextStyles::LabelFont, TextStyles::FontName, ETextStyle::Normal);
+  pGraphics->HandleMouseOver(true);
 
-	pGraphics->AttachPanelBackground(Color::Background);
+  pGraphics->AttachPanelBackground(Color::Background);
 
-	pGraphics->AttachControl(new ITextControl(MakeIRect(kPlugTitle), Strings::Title, TextStyles::Title));
+  pGraphics->AttachControl(new ITextControl(MakeIRect(kPlugTitle), Strings::Title, TextStyles::Title));
 
-	AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
+  AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
 
-	pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
+  pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
 
-	mPeaksControl = new PeaksControl(MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
-	pGraphics->AttachControl(mPeaksControl);
-	pGraphics->AttachControl(new ShaperVizControl(MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
+  mPeaksControl = new PeaksControl(MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
+  pGraphics->AttachControl(mPeaksControl);
+  pGraphics->AttachControl(new ShaperVizControl(MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
 
-	IRECT controlRect = MakeIRect(kControlSurface);
-	pGraphics->AttachControl(new IPanelControl(controlRect, Color::ControlSurfaceBackground));
-	pGraphics->AttachControl(new XYControl(controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
-	pGraphics->AttachControl(new XYControl(controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
+  IRECT controlRect = MakeIRect(kControlSurface);
+  pGraphics->AttachControl(new IPanelControl(controlRect, Color::ControlSurfaceBackground));
+  pGraphics->AttachControl(new XYControl(controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
+  pGraphics->AttachControl(new XYControl(controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
 
-	pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
+  pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
 
-	for(int i = 0; i < kNoiseSnapshotCount; ++i)
-	{
-		int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
-		int snapshotIdx = kNoiseSnapshotMax - i;
-		mSnapshotControls[snapshotIdx] = new SnapshotControl(MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
-		pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
+  for (int i = 0; i < kNoiseSnapshotCount; ++i)
+  {
+    int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
+    int snapshotIdx = kNoiseSnapshotMax - i;
+    mSnapshotControls[snapshotIdx] = new SnapshotControl(MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
+    pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
 
-		BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);
-		pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
-	}
+    BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);
+    pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
+  }
 
-	{
-		const int x = kControlSnapshot_X + kControlSnapshot_W + 5;
-		const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
-		const int len = (kControlSnapshot_H + kControlSnapshot_S)*kNoiseSnapshotMax + kSnapshotSliderHandle*2;
-		pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
-	}
+  {
+    const int x = kControlSnapshot_X + kControlSnapshot_W + 5;
+    const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
+    const int len = (kControlSnapshot_H + kControlSnapshot_S) * kNoiseSnapshotMax + kSnapshotSliderHandle * 2;
+    pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
+  }
 
-	// ADSR
-	{
-		AttachKnob(pGraphics, MakeIRect(kEnvelopeControl), kEnvAttack, Strings::EnvAttackLabel);
-		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S), kEnvDecay, Strings::EnvDecayLabel);
-		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 2), kEnvSustain, Strings::EnvSustainLabel);
-		AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 3), kEnvRelease, Strings::EnvReleaseLabel);
-	}
+  // ADSR
+  {
+    AttachKnob(pGraphics, MakeIRect(kEnvelopeControl), kEnvAttack, Strings::EnvAttackLabel);
+    AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S), kEnvDecay, Strings::EnvDecayLabel);
+    AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 2), kEnvSustain, Strings::EnvSustainLabel);
+    AttachKnob(pGraphics, MakeIRectHOffset(kEnvelopeControl, kEnvelopeControl_S * 3), kEnvRelease, Strings::EnvReleaseLabel);
+  }
 
-	pGraphics->AttachControl(new PlayStopControl(MakeIRect(kPlayStopControl), Color::PlayStopBackground, Color::PlayStopForeground));
+  pGraphics->AttachControl(new PlayStopControl(MakeIRect(kPlayStopControl), Color::PlayStopBackground, Color::PlayStopForeground));
 
-	// Presets section
-	if ( mPlug->NPresets() > 1 )
-	{
-		mPresetControl = AttachEnum(pGraphics, MakeIRect(kPresetRestoreControl), kNumParams);
-	}
+  // Presets section
+  if (mPlug->NPresets() > 1)
+  {
+    mPresetControl = AttachEnum(pGraphics, MakeIRect(kPresetRestoreControl), kNumParams);
+  }
 }
 
 IControl* Interface::AttachEnum(IGraphics* pGraphics, IRECT rect, const int paramIdx, const char * label /*= nullptr*/)

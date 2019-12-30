@@ -42,50 +42,43 @@ void EnumControl::OnInit()
 
 void EnumControl::Draw(IGraphics& g)
 {
-	g.FillRect(mText.mTextEntryBGColor, mRECT);
-	g.DrawRect(mText.mTextEntryFGColor, mRECT);
+  g.FillRect(mText.mTextEntryBGColor, mRECT);
+  g.DrawRect(mText.mTextEntryFGColor, mRECT);
 
-	// buttons
-	IColor buttonColor = mText.mTextEntryFGColor;
+  // buttons
+  IColor buttonColor = mText.mTextEntryFGColor;
   // #TODO get current preset index
-  const int value = GetParamIdx() < kNumParams ? GetParam()->Int() : 0; // mPlug->GetCurrentPresetIdx();
-	if (value == mMin || IsDisabled())
-	{
-		buttonColor.R *= 0.5f; buttonColor.G *= 0.5f; buttonColor.B *= 0.5f;
-	}
-	g.FillTriangle(buttonColor, mDecrementRect.L, mDecrementRect.MH(), mDecrementRect.R, mDecrementRect.T, mDecrementRect.R, mDecrementRect.B, 0);
+  const int value = GetParamIdx() < kNumParams ? GetParam()->Int() : 0;  // mPlug->GetCurrentPresetIdx();
+  if (value == mMin || IsDisabled())
+  {
+    buttonColor.R *= 0.5f;
+    buttonColor.G *= 0.5f;
+    buttonColor.B *= 0.5f;
+  }
+  g.FillTriangle(buttonColor, mDecrementRect.L, mDecrementRect.MH(), mDecrementRect.R, mDecrementRect.T, mDecrementRect.R, mDecrementRect.B, 0);
 
-	buttonColor = mText.mTextEntryFGColor;
-	if (value == mMax || IsDisabled())
-	{
-		buttonColor.R *= 0.5f; buttonColor.G *= 0.5f; buttonColor.B *= 0.5f;
-	}
-	g.FillTriangle(buttonColor, mIncrementRect.L, mIncrementRect.T, mIncrementRect.R, mIncrementRect.MH(), mIncrementRect.L, mIncrementRect.B, 0);
+  buttonColor = mText.mTextEntryFGColor;
+  if (value == mMax || IsDisabled())
+  {
+    buttonColor.R *= 0.5f;
+    buttonColor.G *= 0.5f;
+    buttonColor.B *= 0.5f;
+  }
+  g.FillTriangle(buttonColor, mIncrementRect.L, mIncrementRect.T, mIncrementRect.R, mIncrementRect.MH(), mIncrementRect.L, mIncrementRect.B, 0);
 
-	char* label = 0;
-	if (GetParamIdx() < kNumParams)
-	{
-    WDL_String display;
-		GetParam()->GetDisplayForHost(display);
-		label = display.Get();
-	}
-	else
-	{
+  WDL_String display;
+  if (GetParamIdx() < kNumParams)
+  {
+    GetParam()->GetDisplayForHost(display);
+  }
+  else
+  {
     // #TODO get preset name
-    label = ""; // const_cast<char*>(mPlug->GetPresetName(mPlug->GetCurrentPresetIdx()));
-	}
+    display.Set("");  // const_cast<char*>(mPlug->GetPresetName(mPlug->GetCurrentPresetIdx()));
+  }
 
-	IRECT textRect = mTextRect;
-	// vertically center the text
-	g.MeasureText(mText, label, textRect);
-#ifdef OS_OSX
-	textRect.B -= 4;
-#endif
-	int offset = (mTextRect.H() - textRect.H()) / 2;
-	textRect.T += offset;
-	textRect.B += offset;
-	mText.mFGColor.A = IsDisabled() ? 128 : 255;
-	g.DrawText(mText, label, textRect);
+  mText.mFGColor.A = IsDisabled() ? 128 : 255;
+  g.DrawText(mText, display.Get(), mTextRect);
 }
 
 void EnumControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
@@ -207,18 +200,7 @@ void BangControl::Draw(IGraphics& g)
 
 	if (mLabel != nullptr)
 	{
-		char * label = const_cast<char*>(mLabel);
-		IRECT textRect = mRECT;
-		// vertically center the text
-		g.MeasureText(mText, label, textRect);
-#ifdef OS_OSX
-		textRect.B -= 4;
-#endif
-		int offset = (mRECT.H() - textRect.H()) / 2;
-		textRect.T += offset;
-		textRect.B += offset;
-		g.MeasureText(mText, label, textRect);
-		g.DrawText(mText, label, textRect);
+		g.DrawText(mText, mLabel, mRECT);
 	}
 }
 
