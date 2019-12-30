@@ -49,14 +49,14 @@ void EnumControl::Draw(IGraphics& g)
 	IColor buttonColor = mText.mTextEntryFGColor;
   // #TODO get current preset index
   const int value = GetParamIdx() < kNumParams ? GetParam()->Int() : 0; // mPlug->GetCurrentPresetIdx();
-	if (value == mMin || IsGrayed())
+	if (value == mMin || IsDisabled())
 	{
 		buttonColor.R *= 0.5f; buttonColor.G *= 0.5f; buttonColor.B *= 0.5f;
 	}
 	g.FillTriangle(buttonColor, mDecrementRect.L, mDecrementRect.MH(), mDecrementRect.R, mDecrementRect.T, mDecrementRect.R, mDecrementRect.B, 0);
 
 	buttonColor = mText.mTextEntryFGColor;
-	if (value == mMax || IsGrayed())
+	if (value == mMax || IsDisabled())
 	{
 		buttonColor.R *= 0.5f; buttonColor.G *= 0.5f; buttonColor.B *= 0.5f;
 	}
@@ -84,7 +84,7 @@ void EnumControl::Draw(IGraphics& g)
 	int offset = (mTextRect.H() - textRect.H()) / 2;
 	textRect.T += offset;
 	textRect.B += offset;
-	mText.mFGColor.A = IsGrayed() ? 128 : 255;
+	mText.mFGColor.A = IsDisabled() ? 128 : 255;
 	g.DrawText(mText, label, textRect);
 }
 
