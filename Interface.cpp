@@ -13,70 +13,74 @@
 
 enum ELayout
 {
-	kEnumHeight = 20,
-	kButtonHeight = 15,
-	kLargeKnobSize = 30,
-	kSmallKnobSize = 20,
-	kControlPointSize = 15,
-	kSnapshotSliderHandle = 15,
+  kEnumHeight = 20,
+  kButtonHeight = 15,
+  kLargeKnobSize = 30,
+  kSmallKnobSize = 20,
+  kControlPointSize = 15,
+  kSnapshotSliderHandle = 15,
 
-	kPlugTitle_W = 200,
-	kPlugTitle_H = 15,
-	kPlugTitle_X = PLUG_WIDTH - 10 - kPlugTitle_W,
-	kPlugTitle_Y = PLUG_HEIGHT - kPlugTitle_H - 10,
+  kPlugTitle_W = 200,
+  kPlugTitle_H = 15,
+  kPlugTitle_X = PLUG_WIDTH - 10 - kPlugTitle_W,
+  kPlugTitle_Y = PLUG_HEIGHT - kPlugTitle_H - 10,
 
-	kPresetRestoreControl_X = 10,
-	kPresetRestoreControl_Y = 10,
-	kPresetRestoreControl_W = 205,
-	kPresetRestoreControl_H = kButtonHeight,
+  kPresetRestoreControl_X = 10,
+  kPresetRestoreControl_Y = 10,
+  kPresetRestoreControl_W = 205,
+  kPresetRestoreControl_H = kButtonHeight,
 
-	kVolumeControl_W = kLargeKnobSize,
-	kVolumeControl_H = kLargeKnobSize,
-	kVolumeControl_X = PLUG_WIDTH - kVolumeControl_W - 10,
-	kVolumeControl_Y = 15,
+  kPeaksControl_W = 500,
+  kPeaksControl_H = 50,
+  kPeaksControl_X = 20,
+  kPeaksControl_Y = 15,
 
-	kPeaksControl_W = 500,
-	kPeaksControl_H = 50,
-	kPeaksControl_X = 20,
-	kPeaksControl_Y = 15,
+  kControlSurface_W = kPeaksControl_W,
+  kControlSurface_H = kControlSurface_W,
+  kControlSurface_X = kPeaksControl_X,
+  kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H + 10,
 
-	kControlSurface_W = kPeaksControl_W,
-	kControlSurface_H = kControlSurface_W,
-	kControlSurface_X = kPeaksControl_X,
-	kControlSurface_Y = kPeaksControl_Y + kPeaksControl_H + 10,
+  kControlSnapshot_S = 5,
+  kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 10,
+  kControlSnapshot_Y = kControlSurface_Y,
+  kControlSnapshot_H = (kControlSurface_H - kControlSnapshot_S * kNoiseSnapshotMax) / kNoiseSnapshotCount,
+  kControlSnapshot_W = kControlSnapshot_H,
+  kControlSnapshot_R = 3,
 
-	kControlSnapshot_S = 5,
-	kControlSnapshot_X = kControlSurface_X + kControlSurface_W + 30,
-	kControlSnapshot_Y = kControlSurface_Y,
-	kControlSnapshot_H = (kControlSurface_H - kControlSnapshot_S * kNoiseSnapshotMax) / kNoiseSnapshotCount,
-	kControlSnapshot_W = kControlSnapshot_H,
-	kControlSnapshot_R = 3,
+  kControlSnapshotBang_W = 15,
+  kControlSnapshotBang_H = 15,
+  kControlSnapshotBang_X = kControlSnapshot_X + kControlSnapshot_W - kControlSnapshotBang_W - 4,
+  kControlSnapshotBang_Y = kControlSnapshot_Y + 4,
 
-	kControlSnapshotBang_W = 20,
-	kControlSnapshotBang_H = kEnumHeight,
-	kControlSnapshotBang_X = kControlSnapshot_X - kControlSnapshotBang_W - 5,
-	kControlSnapshotBang_Y = kControlSnapshot_Y + kControlSnapshot_H/2 - kControlSnapshotBang_H/2,
+  kControlSnapshotSlider_X = kControlSnapshot_X + kControlSnapshot_W + 15,
+  kControlSnapshotSlider_Y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle / 2,
+  kControlSnapshotSlider_H = (kControlSnapshot_H + kControlSnapshot_S) * kNoiseSnapshotMax + kSnapshotSliderHandle,
 
-	kLoadAudioControl_X = kPeaksControl_X + kPeaksControl_W - kControlPointSize,
-	kLoadAudioControl_Y = kPeaksControl_Y,
-	kLoadAudioControl_W = kControlPointSize,
-	kLoadAudioControl_H = kPeaksControl_H,
+  kLoadAudioControl_X = kPeaksControl_X + kPeaksControl_W - kControlPointSize,
+  kLoadAudioControl_Y = kPeaksControl_Y,
+  kLoadAudioControl_W = kControlPointSize,
+  kLoadAudioControl_H = kPeaksControl_H,
 
-	kNoiseTypeControl_W = 100,
-	kNoiseTypeControl_H = kEnumHeight,
-	kNoiseTypeControl_X = kControlSurface_X,
-	kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H + 10,
+  kVolumeControl_W = kLargeKnobSize,
+  kVolumeControl_H = kLargeKnobSize,
+  kVolumeControl_X = kLoadAudioControl_X + kLoadAudioControl_W + 25,
+  kVolumeControl_Y = 20,
 
-	kEnvelopeControl_W = kLargeKnobSize,
-	kEnvelopeControl_H = kLargeKnobSize,
-	kEnvelopeControl_X = kNoiseTypeControl_X + kNoiseTypeControl_W + 50,
-	kEnvelopeControl_Y = kNoiseTypeControl_Y,
-	kEnvelopeControl_S = kEnvelopeControl_W + 20,
+  kNoiseTypeControl_W = 100,
+  kNoiseTypeControl_H = kEnumHeight,
+  kNoiseTypeControl_X = kControlSurface_X,
+  kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H + 10,
 
-	kPlayStopControl_W = 30,
-	kPlayStopControl_H = 30,
-	kPlayStopControl_X = kControlSurface_X + kControlSurface_W - kPlayStopControl_W,
-	kPlayStopControl_Y = kControlSurface_Y + kControlSurface_H + 10,
+  kEnvelopeControl_W = kLargeKnobSize,
+  kEnvelopeControl_H = kLargeKnobSize,
+  kEnvelopeControl_X = kNoiseTypeControl_X + kNoiseTypeControl_W + 50,
+  kEnvelopeControl_Y = kNoiseTypeControl_Y,
+  kEnvelopeControl_S = kEnvelopeControl_W + 20,
+
+  kPlayStopControl_W = 30,
+  kPlayStopControl_H = 30,
+  kPlayStopControl_X = kControlSurface_X + kControlSurface_W - kPlayStopControl_W,
+  kPlayStopControl_Y = kControlSurface_Y + kControlSurface_H + 10,
 };
 
 namespace Color
@@ -88,7 +92,7 @@ namespace Color
 
   const IColor Label(255, 208, 208, 216);
 
-  const IColor EnumBackground(255, 125, 125, 125);
+  const IColor EnumBackground(255, 90, 90, 90);
   const IColor EnumBorder = KnobLine;
 
   const IColor BangOn(255, 200, 200, 200);
@@ -155,7 +159,7 @@ namespace Strings
   const char* LoadAudioLabel = ". . .";
   const char* AudioFileTypes = "wav au snd aif aiff flac ogg";
 
-  const char* UpdateSnapshot = "=>";
+  const char* UpdateSnapshot = "+";
   const char* SnapshotSliderLabel = "";
 }
 
@@ -211,14 +215,11 @@ void Interface::CreateControls(IGraphics* pGraphics)
     pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
 
     BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);
-    pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
+    pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::UpdateSnapshot));
   }
 
   // snapshot slider
-  {
-    const float x = kControlSnapshot_X + kControlSnapshot_W + 5;
-    const float y = kControlSnapshot_Y + kControlSnapshot_H * 0.5f - kSnapshotSliderHandle*0.5f;
-    const float len = (kControlSnapshot_H + kControlSnapshot_S) * kNoiseSnapshotMax + kSnapshotSliderHandle;
+  {    
     IVStyle style = DEFAULT_STYLE;
     style.colorSpec.mColors[kFG] = Color::SnapshotSliderHandle;
     style.colorSpec.mColors[kSH] = Color::SnapshotSliderLine;
@@ -227,7 +228,7 @@ void Interface::CreateControls(IGraphics* pGraphics)
     style.showValue = false;
     style.drawShadows = false;
     style.drawFrame = false;
-    pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Strings::SnapshotSliderLabel, style));
+    pGraphics->AttachControl(new SnapshotSlider(kControlSnapshotSlider_X, kControlSnapshotSlider_Y, kControlSnapshotSlider_H, kSnapshotSliderHandle, kNoiseSnapshot, Strings::SnapshotSliderLabel, style));
   }
 
   // ADSR
