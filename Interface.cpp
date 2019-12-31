@@ -57,10 +57,10 @@ enum ELayout
 	kControlSnapshotBang_X = kControlSnapshot_X - kControlSnapshotBang_W - 5,
 	kControlSnapshotBang_Y = kControlSnapshot_Y + kControlSnapshot_H/2 - kControlSnapshotBang_H/2,
 
-	kLoadAudioControl_X = kPeaksControl_X + kPeaksControl_W + 5,
+	kLoadAudioControl_X = kPeaksControl_X + kPeaksControl_W - kControlPointSize,
 	kLoadAudioControl_Y = kPeaksControl_Y,
-	kLoadAudioControl_W = kControlSnapshot_W,
-	kLoadAudioControl_H = kEnumHeight,
+	kLoadAudioControl_W = kControlPointSize,
+	kLoadAudioControl_H = kPeaksControl_H,
 
 	kNoiseTypeControl_W = 100,
 	kNoiseTypeControl_H = kEnumHeight,
@@ -136,6 +136,7 @@ namespace TextStyles
   const IText TextBox(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
   const IText StepMode(ControlTextSize - 2, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
   const IText ButtonLabel(ButtonTextSize, Color::Label, ControlFont, EAlign::Center);
+  const IText Load(ControlTextSize * 2, Color::Label, ControlFont, EAlign::Far, EVAlign::Middle, -90, Color::EnumBackground, Color::EnumBorder);
 }
 
 namespace Strings
@@ -148,7 +149,7 @@ namespace Strings
 	const char * EnvSustainLabel = "Sustain";
 	const char * EnvReleaseLabel = "Release";
 
-	const char * LoadAudioLabel = "Load...";
+	const char * LoadAudioLabel = ". . .";
 	const char * AudioFileTypes = "wav au snd aif aiff flac ogg";
 
 	const char * UpdateSnapshot = "=>";
@@ -183,16 +184,20 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
   pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
 
-  mPeaksControl = new PeaksControl(MakeIRect(kPeaksControl), Color::PeaksBackground, Color::PeaksForeground);
-  pGraphics->AttachControl(mPeaksControl);
-  pGraphics->AttachControl(new ShaperVizControl(MakeIRect(kPeaksControl), Color::ShaperBracket, Color::ShaperLine));
+  // waveform view and viz overlay showing the selected section and playhead
+  {
+    IRECT rect = MakeIRect(kPeaksControl).GetHPadded(-2 - kControlPointSize);
+    mPeaksControl = new PeaksControl(rect, Color::PeaksBackground, Color::PeaksForeground);
+    pGraphics->AttachControl(mPeaksControl);
+    pGraphics->AttachControl(new ShaperVizControl(rect, Color::ShaperBracket, Color::ShaperLine));
+  }
 
   IRECT controlRect = MakeIRect(kControlSurface);
   pGraphics->AttachControl(new IPanelControl(controlRect, Color::ControlSurfaceBackground));
   pGraphics->AttachControl(new XYControl(controlRect.GetPadded(-2), kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA, ControlPoint::Diamond));
   pGraphics->AttachControl(new XYControl(controlRect.GetPadded(-2), kNoiseRange, kNoiseShape, kControlPointSize*0.85f, Color::ControlPointB, ControlPoint::Square));
 
-  pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
+  pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Load, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
 
   for (int i = 0; i < kNoiseSnapshotCount; ++i)
   {
