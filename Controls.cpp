@@ -455,93 +455,62 @@ void ShaperVizControl::OnMouseOver(float x, float y, const IMouseMod& pMod)
 #pragma  endregion ShaperVizControl
 
 #pragma  region XYControl
-class XYParamControl : public IControl
-{
-public:
-  XYParamControl(XYControl& parent, const int paramIdx)
-    : IControl(IRECT(), paramIdx)
-    , mParent(parent)
-  {
-
-  }
-
-  void Draw(IGraphics& g) {}
-
-  void SetValueFromDelegate(double value, int paramIdx = 0) override
-  {
-    IControl::SetValueFromDelegate(value, paramIdx);
-    mParent.OnParamValueFromPlug(GetParamIdx(paramIdx), value);
-  }
-
-private:
-  XYControl& mParent;
-};
-
 XYControl::XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor)
-	: IControl(rect)
-  , mParamX(paramX)
-  , mParamY(paramY)
-	, mPointRadius(pointRadius)
-	, mPointColor(pointColor)
-	, mGribbed(false)
-	, mPointX(0)
-	, mPointY(0)
+  : IControl(rect, {paramX, paramY})
+  , mPointRadius(pointRadius)
+  , mPointColor(pointColor)
+  , mGribbed(false)
+  , mPointX(0)
+  , mPointY(0)
 {
-	mPointRect = mRECT.GetPadded(-pointRadius - 1);
-}
-
-void XYControl::OnInit()
-{
-  mControlX = GetUI()->AttachControl(new XYParamControl(*this, mParamX));
-  mControlY = GetUI()->AttachControl(new XYParamControl(*this, mParamY));
+  mPointRect = mRECT.GetPadded(-pointRadius - 1);
 }
 
 void XYControl::Draw(IGraphics& g)
-{	
-	g.FillCircle(mPointColor, mPointX, mPointY, mPointRadius);
+{
+  g.FillCircle(mPointColor, mPointX, mPointY, mPointRadius);
 }
 
 void XYControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
-	mGribbed = mRECT.Contains(x, y);
+  mGribbed = mRECT.Contains(x, y);
 }
 
 void XYControl::OnMouseUp(float x, float y, const IMouseMod& pMod)
 {
-	mGribbed = false;
+  mGribbed = false;
 }
 
 void XYControl::OnMouseDrag(float x, float y, float dX, float dY, const IMouseMod& pMod)
 {
-	if (mGribbed)
-	{
-		mPointX = Clip(mPointX + dX, mPointRect.L, mPointRect.R);
-		mPointY = Clip(mPointY + dY, mPointRect.T, mPointRect.B);
+  if (mGribbed)
+  {
+    mPointX = Clip(mPointX + dX, mPointRect.L, mPointRect.R);
+    mPointY = Clip(mPointY + dY, mPointRect.T, mPointRect.B);
 
-		mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
+    mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
-    mControlX->SetValueFromUserInput(Map(mPointX, mPointRect.L, mPointRect.R, 0, 1));
-    mControlY->SetValueFromUserInput(Map(mPointY, mPointRect.B, mPointRect.T, 0, 1));
-		SetDirty(false);
-	}
+    SetValue(Map(mPointX, mPointRect.L, mPointRect.R, 0, 1), 0);
+    SetValue(Map(mPointY, mPointRect.B, mPointRect.T, 0, 1), 1);
+    SetDirty();
+  }
 }
 
-void XYControl::OnParamValueFromPlug(int auxParamIdx, double value)
+void XYControl::SetValueFromDelegate(double value, int valIdx /*= 0*/)
 {
-	if (auxParamIdx == mParamX)
-	{
-		mPointX = Map(value, 0, 1, mPointRect.L, mPointRect.R);
-	}
-	else if (auxParamIdx == mParamY)
-	{
-		mPointY = Map(value, 0, 1, mPointRect.B, mPointRect.T);
-	}
+  if (valIdx == 0)
+  {
+    mPointX = Map(value, 0, 1, mPointRect.L, mPointRect.R);
+  }
+  else if (valIdx == 1)
+  {
+    mPointY = Map(value, 0, 1, mPointRect.B, mPointRect.T);
+  }
 
-	mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
+  mTargetRECT = IRECT(mPointX - mPointRadius, mPointY - mPointRadius, mPointX + mPointRadius, mPointY + mPointRadius);
 
-	SetDirty(false);
+  SetDirty(false);
 }
-
 #pragma  endregion XYControl
 
 #pragma  region SnapshotControl

@@ -102,28 +102,23 @@ private:
 class XYControl : public IControl
 {
 public:
-	XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
+  XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
 
-  void OnInit() override;
-	void Draw(IGraphics& g) override;
-	
-	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
-	void OnMouseUp(float x, float y, const IMouseMod& pMod) override;
-	void OnMouseDrag(float x, float y, float dX, float dY, const IMouseMod& pMod) override;
+  void Draw(IGraphics& g) override;
 
-  void OnParamValueFromPlug(int auxParamIdx, double value);
+  void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
+  void OnMouseUp(float x, float y, const IMouseMod& pMod) override;
+  void OnMouseDrag(float x, float y, float dX, float dY, const IMouseMod& pMod) override;
+
+  void SetValueFromDelegate(double value, int valIdx = 0) override;
 
 private:
-
-  int mParamX, mParamY;
-  IControl* mControlX;
-  IControl* mControlY;
-	IRECT mPointRect;
-	// where the point current is.
-	int mPointX, mPointY;
-	int mPointRadius;
-	IColor mPointColor;
-	bool   mGribbed;
+  IRECT mPointRect;
+  // where the point current is.
+  int mPointX, mPointY;
+  int mPointRadius;
+  IColor mPointColor;
+  bool mGribbed;
 };
 
 class SnapshotControl : public IControl

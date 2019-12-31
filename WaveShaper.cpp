@@ -270,9 +270,9 @@ void WaveShaper::SetParamBlend(int paramIdx, double begin, double end, double bl
   InformHostOfParamChange(paramIdx, value);
   EndInformHostOfParamChange(paramIdx);
 
-  // GetGUI()->SetParameterFromPlug(paramIdx, value, true);
+  SendParameterValueFromAPI(paramIdx, value, true);
 
-  // kick of the actual changes and get the change broadcasted
+  // kick off the actual changes and get the change broadcasted
   OnParamChange(paramIdx);
 }
 #endif
