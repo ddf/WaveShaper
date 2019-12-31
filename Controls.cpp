@@ -678,3 +678,44 @@ void PlayStopControl::Draw(IGraphics& g)
 }
 
 #pragma endregion
+
+#pragma region ShapeControl
+ShapeControl::ShapeControl(const IRECT& bounds, const std::initializer_list<const char*>& options, const std::initializer_list<IColor>& optionColors, const char* label, const IVStyle& style, EVShape shape, EDirection direction)
+  : IVTabSwitchControl(bounds, kNoiseType, label, style, shape, direction)
+  , mOptionColors(optionColors)
+{
+  assert(options.size() == optionColors.size());
+
+  for (auto& option : options)
+  {
+    mTabLabels.Add(new WDL_String(option));
+  }
+}
+
+void ShapeControl::DrawWidget(IGraphics& g)
+{
+  int hit = GetSelectedIdx();
+  ETabSegment segment = ETabSegment::Start;
+
+  for (int i = 0; i < mNumStates; i++)
+  {
+    IRECT r = mButtons.Get()[i];
+
+    if (i > 0)
+      segment = ETabSegment::Mid;
+
+    if (i == mNumStates - 1)
+      segment = ETabSegment::End;
+
+    DrawButton(g, r, i == hit, mMouseOverButton == i, segment);
+
+    if (mTabLabels.Get(i))
+    {
+      IText text = mText.WithFGColor(mOptionColors.GetColor((EVColor)i));
+      const char* label = mTabLabels.Get(i)->Get();      
+      g.DrawText(text, label, r);
+    }
+  }
+}
+
+#pragma endregion

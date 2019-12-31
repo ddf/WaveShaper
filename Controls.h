@@ -179,3 +179,14 @@ private:
 	IColor mForeground;
 	bool   mPlaying;
 };
+
+class ShapeControl : public IVTabSwitchControl
+{
+public:
+  ShapeControl(const IRECT& bounds, const std::initializer_list<const char*>& options, const std::initializer_list<IColor>& optionColors, const char* label = "", const IVStyle& style = DEFAULT_STYLE, EVShape shape = EVShape::Rectangle, EDirection direction = EDirection::Horizontal);
+
+  void DrawWidget(IGraphics& g) override;
+
+private:
+  IVColorSpec mOptionColors;
+};

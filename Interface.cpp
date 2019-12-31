@@ -9,6 +9,8 @@
 #include "Params.h"
 #include "Controls.h"
 
+#include "IconsFontaudio.h"
+
 //#define ENABLE_DUMP
 
 enum ELayout
@@ -32,7 +34,7 @@ enum ELayout
 
   kPeaksControl_W = 500,
   kPeaksControl_H = 50,
-  kPeaksControl_X = 20,
+  kPeaksControl_X = 50,
   kPeaksControl_Y = 15,
 
   kControlSurface_W = kPeaksControl_W,
@@ -66,16 +68,16 @@ enum ELayout
   kVolumeControl_X = kLoadAudioControl_X + kLoadAudioControl_W + 25,
   kVolumeControl_Y = 20,
 
-  kNoiseTypeControl_W = 100,
-  kNoiseTypeControl_H = kEnumHeight,
-  kNoiseTypeControl_X = kControlSurface_X,
-  kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H + 10,
+  kNoiseTypeControl_W = 30,
+  kNoiseTypeControl_H = kLargeKnobSize*4,
+  kNoiseTypeControl_X = kControlSurface_X - kNoiseTypeControl_W - 10,
+  kNoiseTypeControl_Y = kControlSurface_Y + kControlSurface_H/2 - kNoiseTypeControl_H/2,
 
   kEnvelopeControl_W = kLargeKnobSize,
-  kEnvelopeControl_H = kLargeKnobSize,
-  kEnvelopeControl_X = kNoiseTypeControl_X + kNoiseTypeControl_W + 50,
-  kEnvelopeControl_Y = kNoiseTypeControl_Y,
   kEnvelopeControl_S = kEnvelopeControl_W + 20,
+  kEnvelopeControl_H = kLargeKnobSize,
+  kEnvelopeControl_X = kControlSurface_X + kControlSurface_W / 2 - kEnvelopeControl_W - kEnvelopeControl_S,
+  kEnvelopeControl_Y = kControlSurface_Y + kControlSurface_H + 10,  
 
   kPlayStopControl_W = 30,
   kPlayStopControl_H = 30,
@@ -137,6 +139,9 @@ namespace TextStyles
   const char* LabelFont = "LabelFont";
   const char* FontName = "Helvetica Neue";
 #endif
+
+  const char * AudioFont = "AudioFont";
+
   const IText Title(LabelTextSize + 8, Color::Title, LabelFont, EAlign::Far);
   const IText Label(LabelTextSize, Color::Label, LabelFont, EAlign::Center);
   const IText Enum(ControlTextSize, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
@@ -144,6 +149,7 @@ namespace TextStyles
   const IText StepMode(ControlTextSize - 2, Color::Label, ControlFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
   const IText ButtonLabel(ButtonTextSize, Color::Label, ControlFont, EAlign::Center);
   const IText Load(ControlTextSize * 2, Color::Label, ControlFont, EAlign::Far, EVAlign::Middle, -90, Color::EnumBackground, Color::EnumBorder);
+  const IText Icon(ControlTextSize, Color::Label, AudioFont, EAlign::Center, EVAlign::Middle, 0, Color::EnumBackground, Color::EnumBorder);
 }
 
 namespace Strings
@@ -155,6 +161,7 @@ namespace Strings
   const char* EnvDecayLabel = "Decay";
   const char* EnvSustainLabel = "Sustain";
   const char* EnvReleaseLabel = "Release";
+  const char* NoiseTypeLabel = "WaveShape";
 
   const char* LoadAudioLabel = ". . .";
   const char* AudioFileTypes = "wav au snd aif aiff flac ogg";
@@ -182,6 +189,8 @@ void Interface::CreateControls(IGraphics* pGraphics)
 {
   pGraphics->LoadFont(TextStyles::ControlFont, TextStyles::FontName, ETextStyle::Bold);
   pGraphics->LoadFont(TextStyles::LabelFont, TextStyles::FontName, ETextStyle::Normal);
+  pGraphics->LoadFont(TextStyles::AudioFont, FONTAUDIO_FN);
+  pGraphics->LoadFont(DEFAULT_FONT, ROBOTO_FN);
   pGraphics->HandleMouseOver(true);
 
   pGraphics->AttachPanelBackground(Color::Background);
@@ -190,7 +199,11 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
   AttachKnob(pGraphics, MakeIRect(kVolumeControl), kVolume, Strings::VolumeLabel);
 
-  pGraphics->AttachControl(new EnumControl(MakeIRect(kNoiseTypeControl), kNoiseType, TextStyles::Enum));
+  IVStyle style = DEFAULT_STYLE.WithValueText(TextStyles::Icon).WithColor(kFG, COLOR_TRANSPARENT).WithColor(kPR, COLOR_DARK_GRAY);
+  pGraphics->AttachControl(new ShapeControl(MakeIRect(kNoiseTypeControl),
+                                            { ICON_FAU_MODRANDOM, ICON_FAU_MODRANDOM, ICON_FAU_MODRANDOM },
+                                            { COLOR_WHITE, IColor::FromColorCode(0xff6ec7), COLOR_RED },
+                                            Strings::NoiseTypeLabel, style, EVShape::Rectangle, EDirection::Vertical));
 
   // waveform view and viz overlay showing the selected section and playhead
   {

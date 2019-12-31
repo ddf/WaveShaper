@@ -149,7 +149,8 @@ END
 3 TEXTINCLUDE 
 BEGIN
     "#include ""..\\config.h""\r\n"
-    "ROBOTTO_FN TTF ROBOTTO_FN\r\n"
+    "ROBOTO_FN TTF ROBOTTO_FN\r\n"
+    "FONTAUDIO_FN TTF FONTAUDIO_FN\r\n"
     "SND_01_ID WAVE SND_01_FN\0"
 END
 
@@ -230,7 +231,8 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "..\config.h"
-ROBOTTO_FN TTF ROBOTTO_FN
+ROBOTO_FN TTF ROBOTO_FN
+FONTAUDIO_FN TTF FONTAUDIO_FN
 SND_01_ID WAVE SND_01_FN
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
