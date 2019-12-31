@@ -581,10 +581,7 @@ void SnapshotControl::Draw(IGraphics& g)
   {
     IBlend blend(EBlend::None, 1 - weight);
     IColor border(255, 200, 200, 200);
-    g.DrawLine(border, mRECT.L, mRECT.T, mRECT.R, mRECT.T, &blend);
-    g.DrawLine(border, mRECT.R, mRECT.T + 1, mRECT.R, mRECT.B - 1, &blend);
-    g.DrawLine(border, mRECT.L, mRECT.B, mRECT.R, mRECT.B, &blend);
-    g.DrawLine(border, mRECT.L, mRECT.T + 1, mRECT.L, mRECT.B - 1, &blend);
+    g.DrawRect(border, mRECT, &blend);
   }
 
   if (mHighlight > 0)
@@ -624,40 +621,19 @@ void SnapshotControl::Update()
 #pragma  endregion
 
 #pragma  region SnapshotSlider
-
-SnapshotSlider::SnapshotSlider(int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor)
-	: ISliderControlBase(IRECT(x, y, x+handleRadius*2, y+len), paramIdx)
-	, mLineColor(lineColor)
-	, mHandleColor(handleColor)
+SnapshotSlider::SnapshotSlider(float x, float y, float len, int handleRadius, int paramIdx, const char* label, const IVStyle& style)
+  : IVSliderControl(IRECT(x, y, x + handleRadius * 2, y + len), paramIdx, label, style)
 {
-	mBlend.mMethod = EBlend::None;
-	mBlend.mWeight = 0.75f;
 }
 
-void SnapshotSlider::Draw(IGraphics& g)
+void SnapshotSlider::DrawTrack(IGraphics& g, const IRECT& filledArea)
 {
-	IRECT handle = mTrack;
-	int handleRadius = handle.W() / 2;
-	int handleCX = handle.MW();
-	int handleCY = handle.MH();
-	g.DrawLine(mLineColor, handleCX - 2, mRECT.T + handleRadius, handleCX + 2, mRECT.T + handleRadius, &mBlend);
-	g.DrawLine(mLineColor, handleCX, mRECT.T + handleRadius, handleCX, mRECT.B - handleRadius, &mBlend);
-	g.DrawLine(mLineColor, handleCX - 2, mRECT.B - handleRadius, handleCX + 2, mRECT.B - handleRadius, &mBlend);
-	
-	g.FillCircle(mHandleColor, handleCX, handleCY, handleRadius-4, &mBlend);
-	//pGraphics->FillTriangle(&mHandleColor, handle.L + 4, handleCY, handle.R - 6, handle.T, handle.R - 6, handle.B, &mBlend);
+  const float cx = mTrack.MW();
+  const IColor& color = GetColor(kSH);
+  g.DrawLine(color, cx - 2, mTrack.T, cx + 2, mTrack.T);
+  g.DrawLine(color, cx, mTrack.T, cx, mTrack.B);
+  g.DrawLine(color, cx - 2, mTrack.B, cx + 2, mTrack.B);
 }
-
-void SnapshotSlider::SetDirty(bool pushParamToPlug /*= true*/, int paramIdx)
-{
-	IControl::SetDirty(pushParamToPlug, paramIdx);
-
-	//if (pushParamToPlug)
-	//{
-	//	GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
-	//}
-}
-
 #pragma  endregion
 
 #pragma  region PlayStopControl

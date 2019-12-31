@@ -1,6 +1,6 @@
 #pragma  once
 
-#include "IControl.h"
+#include "IControls.h"
 
 using namespace iplug;
 using namespace igraphics;
@@ -158,18 +158,12 @@ private:
   ControlPoint::Shape mPointShapeB;
 };
 
-class SnapshotSlider : public ISliderControlBase
+class SnapshotSlider : public IVSliderControl
 {
 public:
-	SnapshotSlider(int x, int y, int len, int handleRadius, int paramIdx, IColor lineColor, IColor handleColor);
+	SnapshotSlider(float x, float y, float len, int handleRadius, int paramIdx, const char * label, const IVStyle& style);
 
-	void Draw(IGraphics& g) override;
-  void SetDirty(bool triggerAction = true, int valIdx = kNoValIdx);
-
-private:
-  IBlend mBlend;
-	IColor mLineColor;
-	IColor mHandleColor;
+	void DrawTrack(IGraphics& g, const IRECT& filledArea) override;
 };
 
 class PlayStopControl : public IPanelControl

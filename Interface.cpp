@@ -81,36 +81,39 @@ enum ELayout
 
 namespace Color
 {
-	const IColor Background(255, 10, 10, 10);
+  const IColor Background(255, 10, 10, 10);
 
-	const IColor KnobLine(255, 255, 255, 255);
-	const IColor KnobCorona(255, 255, 255, 255);
-	
-	const IColor Label(255, 208, 208, 216);
+  const IColor KnobLine(255, 255, 255, 255);
+  const IColor KnobCorona(255, 255, 255, 255);
 
-	const IColor EnumBackground(255, 125, 125, 125);
-	const IColor EnumBorder = KnobLine;
+  const IColor Label(255, 208, 208, 216);
 
-	const IColor BangOn(255, 200, 200, 200);
-	const IColor BangOff(EnumBackground);
+  const IColor EnumBackground(255, 125, 125, 125);
+  const IColor EnumBorder = KnobLine;
 
-	const IColor Title(255, 30, 30, 30);
+  const IColor BangOn(255, 200, 200, 200);
+  const IColor BangOff(EnumBackground);
 
-	const IColor PeaksForeground(255, 100, 100, 100);
-	const IColor PeaksBackground(255, 60, 60, 60);
+  const IColor Title(255, 30, 30, 30);
 
-	const IColor ControlSurfaceBackground(255, 60, 60, 60);
-	const IColor ControlPointA(255, 170, 170, 0);
-	const IColor ControlPointB(255, 0, 170, 170);
+  const IColor PeaksForeground(255, 100, 100, 100);
+  const IColor PeaksBackground(255, 60, 60, 60);
 
-	const IColor ShaperBracket(255, 0, 200, 200);
-	const IColor ShaperLine(255, 200, 200);
+  const IColor ControlSurfaceBackground(255, 60, 60, 60);
+  const IColor ControlPointA(255, 170, 170, 0);
+  const IColor ControlPointB(255, 0, 170, 170);
 
-	const IColor SnapshotSliderLine(255, 200, 200, 200);
-	const IColor SnapshotSliderHandle(128, 255, 255, 255);
+  const IColor ShaperBracket(255, 0, 200, 200);
+  const IColor ShaperLine(255, 200, 200);
 
-	const IColor PlayStopBackground(EnumBackground);
-	const IColor PlayStopForeground(EnumBorder);
+  const IColor SnapshotSliderLine(255, 200, 200, 200);
+  const IColor SnapshotSliderHandle(128, 255, 255, 255);
+  const IColor SnapshotSliderHandleHighlight(200, 255, 255, 255);
+
+  const IVColorSpec SnapshotSliderColors({ DEFAULT_BGCOLOR, SnapshotSliderHandle, DEFAULT_PRCOLOR, DEFAULT_FRCOLOR, DEFAULT_HLCOLOR, SnapshotSliderLine, DEFAULT_X1COLOR, DEFAULT_X2COLOR, DEFAULT_X3COLOR });
+
+  const IColor PlayStopBackground(EnumBackground);
+  const IColor PlayStopForeground(EnumBorder);
 }
 
 namespace TextStyles
@@ -141,18 +144,19 @@ namespace TextStyles
 
 namespace Strings
 {
-	const char * Title = PLUG_NAME " " PLUG_VERSION_STR;
-	const char * PresetsLabel = "Presets";
-	const char * VolumeLabel = "Volume";
-	const char * EnvAttackLabel = "Attack";
-	const char * EnvDecayLabel = "Decay";
-	const char * EnvSustainLabel = "Sustain";
-	const char * EnvReleaseLabel = "Release";
+  const char* Title = PLUG_NAME " " PLUG_VERSION_STR;
+  const char* PresetsLabel = "Presets";
+  const char* VolumeLabel = "Volume";
+  const char* EnvAttackLabel = "Attack";
+  const char* EnvDecayLabel = "Decay";
+  const char* EnvSustainLabel = "Sustain";
+  const char* EnvReleaseLabel = "Release";
 
-	const char * LoadAudioLabel = ". . .";
-	const char * AudioFileTypes = "wav au snd aif aiff flac ogg";
+  const char* LoadAudioLabel = ". . .";
+  const char* AudioFileTypes = "wav au snd aif aiff flac ogg";
 
-	const char * UpdateSnapshot = "=>";
+  const char* UpdateSnapshot = "=>";
+  const char* SnapshotSliderLabel = "";
 }
 
 Interface::Interface(PLUG_CLASS_NAME* inPlug)
@@ -210,11 +214,20 @@ void Interface::CreateControls(IGraphics* pGraphics)
     pGraphics->AttachControl(new BangControl(MakeIRectVOffset(kControlSnapshotBang, voff), bangAction, Color::BangOn, Color::ControlSurfaceBackground, &TextStyles::Enum, Strings::UpdateSnapshot));
   }
 
+  // snapshot slider
   {
-    const int x = kControlSnapshot_X + kControlSnapshot_W + 5;
-    const int y = kControlSnapshot_Y + kControlSnapshot_H / 2 - kSnapshotSliderHandle;
-    const int len = (kControlSnapshot_H + kControlSnapshot_S) * kNoiseSnapshotMax + kSnapshotSliderHandle * 2;
-    pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Color::SnapshotSliderLine, Color::SnapshotSliderHandle));
+    const float x = kControlSnapshot_X + kControlSnapshot_W + 5;
+    const float y = kControlSnapshot_Y + kControlSnapshot_H * 0.5f - kSnapshotSliderHandle*0.5f;
+    const float len = (kControlSnapshot_H + kControlSnapshot_S) * kNoiseSnapshotMax + kSnapshotSliderHandle;
+    IVStyle style = DEFAULT_STYLE;
+    style.colorSpec.mColors[kFG] = Color::SnapshotSliderHandle;
+    style.colorSpec.mColors[kSH] = Color::SnapshotSliderLine;
+    style.colorSpec.mColors[kHL] = Color::SnapshotSliderHandleHighlight;
+    style.showLabel = false;
+    style.showValue = false;
+    style.drawShadows = false;
+    style.drawFrame = false;
+    pGraphics->AttachControl(new SnapshotSlider(x, y, len, kSnapshotSliderHandle, kNoiseSnapshot, Strings::SnapshotSliderLabel, style));
   }
 
   // ADSR
