@@ -5,6 +5,18 @@
 using namespace iplug;
 using namespace igraphics;
 
+namespace ControlPoint
+{
+  enum Shape
+  {
+    Circle,
+    Square,
+    Diamond
+  };
+
+  static void Draw(IGraphics& g, const IColor& color, Shape shape, float x, float y, float radius, const IBlend* blend = nullptr);
+}
+
 class EnumControl : public IControl
 {
 public:
@@ -102,7 +114,7 @@ private:
 class XYControl : public IControl
 {
 public:
-  XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor);
+  XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, const IColor& pointColor, const ControlPoint::Shape pointShape);
 
   void Draw(IGraphics& g) override;
 
@@ -113,33 +125,37 @@ public:
   void SetValueFromDelegate(double value, int valIdx = 0) override;
 
 private:
+  const int mPointRadius;
+  const ControlPoint::Shape mPointShape;
+  const IColor mPointColor;
+
   IRECT mPointRect;
   // where the point current is.
   int mPointX, mPointY;
-  int mPointRadius;
-  IColor mPointColor;
   bool mGribbed;
 };
 
 class SnapshotControl : public IControl
 {
 public:
-	SnapshotControl(IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB);
+  SnapshotControl(IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, ControlPoint::Shape pointShapeA, IColor pointColorB, ControlPoint::Shape pointShapeB);
 
-	void Draw(IGraphics& g) override;
+  void Draw(IGraphics& g) override;
 
-	void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
+  void OnMouseDown(float x, float y, const IMouseMod& pMod) override;
 
-	void Update();
+  void Update();
 
 private:
-	int mSnapshotIdx;
-	IRECT mPointRect;
-	int mPointRadius;
-	float  mHighlight;
-	IColor mBackgroundColor;
-	IColor mPointColorA;
-	IColor mPointColorB;
+  int mSnapshotIdx;
+  IRECT mPointRect;
+  int mPointRadius;
+  float mHighlight;
+  IColor mBackgroundColor;
+  IColor mPointColorA;
+  ControlPoint::Shape mPointShapeA;
+  IColor mPointColorB;
+  ControlPoint::Shape mPointShapeB;
 };
 
 class SnapshotSlider : public ISliderControlBase

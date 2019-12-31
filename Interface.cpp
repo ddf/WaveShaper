@@ -17,7 +17,7 @@ enum ELayout
 	kButtonHeight = 15,
 	kLargeKnobSize = 30,
 	kSmallKnobSize = 20,
-	kControlPointSize = 30,
+	kControlPointSize = 15,
 	kSnapshotSliderHandle = 15,
 
 	kPlugTitle_W = 200,
@@ -189,8 +189,8 @@ void Interface::CreateControls(IGraphics* pGraphics)
 
   IRECT controlRect = MakeIRect(kControlSurface);
   pGraphics->AttachControl(new IPanelControl(controlRect, Color::ControlSurfaceBackground));
-  pGraphics->AttachControl(new XYControl(controlRect, kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA));
-  pGraphics->AttachControl(new XYControl(controlRect, kNoiseRange, kNoiseShape, kControlPointSize, Color::ControlPointB));
+  pGraphics->AttachControl(new XYControl(controlRect.GetPadded(-2), kNoiseAmpMod, kNoiseRate, kControlPointSize, Color::ControlPointA, ControlPoint::Diamond));
+  pGraphics->AttachControl(new XYControl(controlRect.GetPadded(-2), kNoiseRange, kNoiseShape, kControlPointSize*0.85f, Color::ControlPointB, ControlPoint::Square));
 
   pGraphics->AttachControl(new BangControl(MakeIRect(kLoadAudioControl), BangControl::ActionLoad, Color::BangOn, Color::BangOff, &TextStyles::Enum, Strings::LoadAudioLabel, -1, Strings::AudioFileTypes));
 
@@ -198,7 +198,7 @@ void Interface::CreateControls(IGraphics* pGraphics)
   {
     int voff = (kControlSnapshot_H + kControlSnapshot_S) * i;
     int snapshotIdx = kNoiseSnapshotMax - i;
-    mSnapshotControls[snapshotIdx] = new SnapshotControl(MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, Color::ControlPointB);
+    mSnapshotControls[snapshotIdx] = new SnapshotControl(MakeIRectVOffset(kControlSnapshot, voff), kNoiseSnapshot, snapshotIdx, kControlSnapshot_R, Color::ControlSurfaceBackground, Color::ControlPointA, ControlPoint::Diamond, Color::ControlPointB, ControlPoint::Square);
     pGraphics->AttachControl(mSnapshotControls[snapshotIdx]);
 
     BangControl::Action bangAction = (BangControl::Action)(BangControl::ActionCustom + snapshotIdx);

@@ -5,6 +5,31 @@
 #include "MultiChannelBuffer.h"
 #include "Interp.h"
 
+void ControlPoint::Draw(IGraphics& g, const IColor& color, const ControlPoint::Shape shape, float x, float y, float r, const IBlend* blend)
+{
+  switch (shape)
+  {
+    case ControlPoint::Circle:
+    {
+      g.FillCircle(color, x, y, r, blend);
+    }
+    break;
+
+    case ControlPoint::Square:
+    {
+      g.FillRect(color, IRECT(x-r, y-r, x+r, y+r), blend);
+    }
+    break;
+
+    case ControlPoint::Diamond:
+    {
+      g.FillTriangle(color, x-r, y, x+r, y, x, y-r, blend);
+      g.FillTriangle(color, x-r, y, x+r, y, x, y+r, blend);
+    }
+    break;
+  }
+}
+
 
 #pragma  region EnumControl
 EnumControl::EnumControl(IRECT rect, int paramIdx, const IText& textStyle)
@@ -455,9 +480,10 @@ void ShaperVizControl::OnMouseOver(float x, float y, const IMouseMod& pMod)
 #pragma  endregion ShaperVizControl
 
 #pragma  region XYControl
-XYControl::XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, IColor pointColor)
+XYControl::XYControl(IRECT rect, const int paramX, const int paramY, const int pointRadius, const IColor& pointColor, const ControlPoint::Shape pointShape)
   : IControl(rect, {paramX, paramY})
   , mPointRadius(pointRadius)
+  , mPointShape(pointShape)
   , mPointColor(pointColor)
   , mGribbed(false)
   , mPointX(0)
@@ -468,17 +494,20 @@ XYControl::XYControl(IRECT rect, const int paramX, const int paramY, const int p
 
 void XYControl::Draw(IGraphics& g)
 {
-  g.FillCircle(mPointColor, mPointX, mPointY, mPointRadius);
+  const IBlend* blend = mGribbed ? nullptr : &BLEND_75;
+  ControlPoint::Draw(g, mPointColor, mPointShape, mPointX, mPointY, mPointRadius, blend);
 }
 
 void XYControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
   mGribbed = mRECT.Contains(x, y);
+  SetDirty(false);
 }
 
 void XYControl::OnMouseUp(float x, float y, const IMouseMod& pMod)
 {
   mGribbed = false;
+  SetDirty(false);
 }
 
 void XYControl::OnMouseDrag(float x, float y, float dX, float dY, const IMouseMod& pMod)
@@ -515,13 +544,15 @@ void XYControl::SetValueFromDelegate(double value, int valIdx /*= 0*/)
 
 #pragma  region SnapshotControl
 
-SnapshotControl::SnapshotControl(IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, IColor pointColorB)
+SnapshotControl::SnapshotControl(IRECT rect, const int snapshotParam, const int snapshotIdx, const int pointRadius, IColor backgroundColor, IColor pointColorA, ControlPoint::Shape pointShapeA, IColor pointColorB, ControlPoint::Shape pointShapeB)
 	: IControl(rect, snapshotParam)
 	, mSnapshotIdx(snapshotIdx)
 	, mPointRadius(pointRadius)
 	, mBackgroundColor(backgroundColor)
 	, mPointColorA(pointColorA)
+  , mPointShapeA(pointShapeA)
 	, mPointColorB(pointColorB)
+  , mPointShapeB(pointShapeB)
 	, mHighlight(0)
 {
 	mPointRect = mRECT.GetPadded(-pointRadius - 1);
@@ -529,65 +560,65 @@ SnapshotControl::SnapshotControl(IRECT rect, const int snapshotParam, const int 
 
 void SnapshotControl::Draw(IGraphics& g)
 {
-	g.FillRect(mBackgroundColor, mRECT);
+  g.FillRect(mBackgroundColor, mRECT);
 
-	WaveShaper* shaper = dynamic_cast<WaveShaper*>(GetDelegate());
-	if (shaper != nullptr)
-	{
-		WaveShaper::NoiseSnapshot snapshot = shaper->GetNoiseSnapshotNormalized(mSnapshotIdx);
-		
-		float x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.AmpMod);
-		float y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Rate);
-		g.FillCircle(mPointColorA, x, y, mPointRadius);
-		
-		x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.Range);
-		y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Shape);
-		g.FillCircle(mPointColorB, x, y, mPointRadius);
-	}
+  WaveShaper* shaper = dynamic_cast<WaveShaper*>(GetDelegate());
+  if (shaper != nullptr)
+  {
+    WaveShaper::NoiseSnapshot snapshot = shaper->GetNoiseSnapshotNormalized(mSnapshotIdx);
 
-	double weight = abs(GetParam()->Value() - mSnapshotIdx);
-	if (weight < 1)
-	{
-		IBlend blend(EBlend::None, 1 - weight);
-		IColor border(255, 200, 200, 200);
-		g.DrawLine(border, mRECT.L, mRECT.T, mRECT.R, mRECT.T, &blend);
-		g.DrawLine(border, mRECT.R, mRECT.T+1, mRECT.R, mRECT.B-1, &blend);
-		g.DrawLine(border, mRECT.L, mRECT.B, mRECT.R, mRECT.B, &blend);
-		g.DrawLine(border, mRECT.L, mRECT.T+1, mRECT.L, mRECT.B-1, &blend);
-	}
+    float x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.AmpMod);
+    float y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Rate);
+    ControlPoint::Draw(g, mPointColorA, mPointShapeA, x, y, mPointRadius);
 
-	if (mHighlight > 0)
-	{
-		IBlend blend(EBlend::None, mHighlight);
-		g.FillRect(COLOR_WHITE, mRECT, &blend);
-		mHighlight -= 0.1f;
+    x = ::Lerp(mPointRect.L, mPointRect.R, snapshot.Range);
+    y = ::Lerp(mPointRect.B, mPointRect.T, snapshot.Shape);
+    ControlPoint::Draw(g, mPointColorB, mPointShapeB, x, y, mPointRadius);
+  }
+
+  double weight = abs(GetParam()->Value() - mSnapshotIdx);
+  if (weight < 1)
+  {
+    IBlend blend(EBlend::None, 1 - weight);
+    IColor border(255, 200, 200, 200);
+    g.DrawLine(border, mRECT.L, mRECT.T, mRECT.R, mRECT.T, &blend);
+    g.DrawLine(border, mRECT.R, mRECT.T + 1, mRECT.R, mRECT.B - 1, &blend);
+    g.DrawLine(border, mRECT.L, mRECT.B, mRECT.R, mRECT.B, &blend);
+    g.DrawLine(border, mRECT.L, mRECT.T + 1, mRECT.L, mRECT.B - 1, &blend);
+  }
+
+  if (mHighlight > 0)
+  {
+    IBlend blend(EBlend::None, mHighlight);
+    g.FillRect(COLOR_WHITE, mRECT, &blend);
+    mHighlight -= 0.1f;
     SetDirty(false);
-	}
+  }
 }
 
 void SnapshotControl::OnMouseDown(float x, float y, const IMouseMod& pMod)
 {
-	if (pMod.L)
-	{
+  if (pMod.L)
+  {
     SetValue(GetParam()->ToNormalized(mSnapshotIdx));
-		mHighlight = 1;
-		SetDirty();
-		//GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
-	}
+    mHighlight = 1;
+    SetDirty();
+    // GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+  }
 }
 
 void SnapshotControl::Update()
 {
-	WaveShaper* shaper = dynamic_cast<WaveShaper*>(GetDelegate());
-	if (shaper != nullptr)
-	{
-		shaper->UpdateNoiseSnapshot(mSnapshotIdx);
-	}
+  WaveShaper* shaper = dynamic_cast<WaveShaper*>(GetDelegate());
+  if (shaper != nullptr)
+  {
+    shaper->UpdateNoiseSnapshot(mSnapshotIdx);
+  }
 
   SetValue(GetParam()->ToNormalized(mSnapshotIdx));
-	mHighlight = 1;
-	SetDirty();
-	//GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
+  mHighlight = 1;
+  SetDirty();
+  // GetGUI()->SetParameterFromGUI(mParamIdx, mValue);
 }
 
 #pragma  endregion
