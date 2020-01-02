@@ -132,12 +132,13 @@ void FileLoader::ReadFile(SF_INFO& fileInfo, SNDFILE* file, Minim::MultiChannelB
 	sf_count_t framesRead = sf_readf_float(file, mBuffer, fileInfo.frames);
 
 	outBuffer.setChannelCount(fileInfo.channels);
-	outBuffer.setBufferSize(framesRead);
+  outBuffer.makeSilence();
+  sf_count_t toWrite = framesRead < outBuffer.getBufferSize() ? framesRead : outBuffer.getBufferSize();
 	// and now we should be able to de-interleave our read buffer into buffer
 	for (int c = 0; c < fileInfo.channels; ++c)
 	{
 		float * channel = outBuffer.getChannel(c);
-		for (int i = 0; i < framesRead; ++i)
+		for (int i = 0; i < toWrite; ++i)
 		{
 			const int offset = (i * fileInfo.channels) + c;
 			const float sample = mBuffer[offset];

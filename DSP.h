@@ -8,7 +8,11 @@
 #include "Noise.h"
 #include "TickRate.h"
 
+#include "vessl.h"
+
 #include <vector>
+
+#define BUFFER_SIZE 44100*4
 
 using namespace iplug;
 
@@ -74,6 +78,7 @@ public:
     mMidiQueue.Clear();
     mMidiQueue.Resize(blockSize);
     mMainSignalVol.setSampleRate((float)sampleRate);
+    mSignalDT = 1.0 / sampleRate;
   }
 
   void ProcessMidiMsg(const IMidiMsg& msg)
@@ -89,10 +94,10 @@ public:
   void SetSustain(double value) { mSustain = value; }
   void SetRelease(double value) { mRelease = value; }
   void SetNoiseTint(Minim::Noise::Tint value) { mNoiseTint = value; }
-  void SetNoiseMod(double value) { mMod = value; mModCtrl.activate(0.01f, mModCtrl.getAmp(), value); }
-  void SetNoiseRate(double value) { mRate = value; if (!mMidiNotes.empty()) mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), value); }
-  void SetNoiseRange(double value) { mRange = value; mRangeCtrl.activate(0.1f, mRangeCtrl.getAmp(), value); }
-  void SetNoiseShape(double value) { mShape = value; mShapeCtrl.activate(0.1f, mShapeCtrl.getAmp(), value); }
+  void SetNoiseMod(double value) { mMod = value; TriggerModChange(value, 0.01); }
+  void SetNoiseRate(double value) { mRate = value; if (!mMidiNotes.empty()) TriggerRateChange(value, 0.01); }
+  void SetNoiseRange(double value) { mRange = value; TriggerRangeChange(value, 0.1); }
+  void SetNoiseShape(double value) { mShape = value; TriggerShapeChange(value, 0.1); }
 
   float GetNoiseOffset() const { return mNoizeOffset->value.getLastValue(); }
   float GetNoiseRate() const { return mNoizeRate->getLastValues()[0]; }
@@ -101,12 +106,48 @@ public:
   float GetShaperMapValue() const { return mShaperMapValue; }
 
 private:
+  void TriggerModChange(sample target, sample duration)
+  {
+    mModCtrl.activate(duration, mModCtrl.getAmp(), target);
+    vModCtrl.begin = vModCtrl.value;
+    vModCtrl.end = target;
+    vModCtrl.duration = duration;
+    vModCtrl.trigger();
+  }
+
+  void TriggerRateChange(sample target, sample duration)
+  {
+    mRateCtrl.activate(duration, mRateCtrl.getAmp(), target);
+    vRateCtrl.begin = vRateCtrl.value;
+    vRateCtrl.end = target;
+    vRateCtrl.duration = duration;
+    vRateCtrl.trigger();
+  }
+
+  void TriggerRangeChange(sample target, sample duration)
+  {
+    mRangeCtrl.activate(duration, mRangeCtrl.getAmp(), target);
+    vRangeCtrl.begin = vRangeCtrl.value;
+    vRangeCtrl.end = target;
+    vRangeCtrl.duration = duration;
+    vRangeCtrl.trigger();
+  }
+
+  void TriggerShapeChange(sample target, sample duration)
+  {
+    mShapeCtrl.activate(duration, mShapeCtrl.getAmp(), target);
+    vShapeCtrl.begin = vShapeCtrl.value;
+    vShapeCtrl.end = target;
+    vShapeCtrl.duration = duration;
+    vShapeCtrl.trigger();
+  }
 
   // params
   double mVolume, mAttack, mDecay, mSustain, mRelease;
   double mMod, mRate, mRange, mShape;
   int mShaperSize;
   float mShaperMapValue;
+  double mSignalDT;
 
   IMidiQueue  mMidiQueue;
   MidiMsgList mMidiNotes;
@@ -132,4 +173,24 @@ private:
   Minim::Line	mRangeCtrl;
   Minim::Line mShapeCtrl;
   ADSR				mEnvelope;
+
+  // vessl version
+  vessl::samplebuffer<sample, BUFFER_SIZE> mBufferLeft;
+  vessl::samplebuffer<sample, BUFFER_SIZE> mBufferRight;
+
+  vessl::noise<sample> vNoize;
+  vessl::multiplier<sample> vNoizeAmp;
+  vessl::oscil<sample> vNoizeMod;
+  vessl::multiplier<sample> vNoizeModAmp;
+  vessl::summer<sample, 2> vNoizeSum;
+  vessl::waveshaper<sample> vNoizeShaperLeft;
+  vessl::waveshaper<sample> vNoizeShaperRight;
+  vessl::mixer<sample, 2, 2> vNoizeShaperMixer;
+
+  vessl::ramp<sample> vRateCtrl;
+  vessl::ramp<sample> vModCtrl;
+  vessl::ramp<sample> vRangeCtrl;
+  vessl::ramp<sample> vShapeCtrl;
+
+  vessl::signal<sample> vMainSignal;
 };

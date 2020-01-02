@@ -163,6 +163,16 @@ WaveShaperDSP::WaveShaperDSP(int channelCount)
   , mShaperSize(0)
   , mShaperMapValue(0)
   , mMainSignalVol(0)
+  , vNoize(vessl::noiseTint::pink)
+  , vNoizeAmp(1)
+  , vNoizeMod(vessl::waves<sample>::sine, kDefaultMod)
+  , vRateCtrl(0, 0, 0.01)
+  , vModCtrl(kDefaultMod, kDefaultMod)
+  , vRangeCtrl(kDefaultRange, kDefaultRange)
+  , vShapeCtrl(kDefaultShape, kDefaultShape)
+  , vNoizeShaperLeft(mBufferLeft)
+  , vNoizeShaperRight(mBufferRight)
+  , vNoizeShaperMixer(1)
 {
   mNoizeRate = new Minim::TickRate(mRate);
   mNoizeRate->setInterpolation(true);
@@ -222,6 +232,19 @@ WaveShaperDSP::WaveShaperDSP(int channelCount)
 
   mMainSignal->patch(mEnvelope).patch(mMainSignalVol);
   mMainSignalVol.setAudioChannelCount(channelCount);
+ 
+  vMainSignal.patch(vRateCtrl.value, vNoize.rate);
+  vMainSignal.patch(vModCtrl.value, vNoizeMod.fhz);
+  vMainSignal.patch(vNoizeMod.out, vNoizeModAmp.in);
+  vMainSignal.patch(vShapeCtrl.value, vNoizeModAmp.factor);
+  vMainSignal.patch(vNoizeModAmp.out, vNoizeAmp.factor);
+
+  // offset value is summed with the noise to control where in the wavetable we are scrubbing
+  vMainSignal.patch(vNoize.out, vNoizeAmp.in).patch(vNoizeAmp.out, vNoizeSum.in[0]);
+  vMainSignal.patch(vRangeCtrl.value, vNoizeSum.in[1]);
+
+  vMainSignal.patch(vNoizeSum.out, vNoizeShaperLeft.in).patch(vNoizeShaperLeft.out, vNoizeShaperMixer.in[0]);
+  vMainSignal.patch(vNoizeSum.out, vNoizeShaperRight.in).patch(vNoizeShaperRight.out, vNoizeShaperMixer.in[1]);
 }
 
 WaveShaperDSP::~WaveShaperDSP()
@@ -262,7 +285,7 @@ void WaveShaperDSP::ProcessBlock(sample** inputs, sample** outputs, int nOutputs
             if (!mEnvelope.isOn())
             {
               mEnvelope.noteOn(pMsg.Velocity() / 127.0f, mAttack, mDecay, mSustain, mRelease);
-              mRateCtrl.activate(0.01f, mRateCtrl.getAmp(), mRate);
+              TriggerRateChange(mRate, 0.01);
             }
             break;
           }
@@ -282,7 +305,7 @@ void WaveShaperDSP::ProcessBlock(sample** inputs, sample** outputs, int nOutputs
           if (mMidiNotes.empty())
           {
             mEnvelope.noteOff();
-            mRateCtrl.activate(mEnvelope.getRelease(), mRateCtrl.getAmp(), 0);
+            TriggerRateChange(0, mEnvelope.getRelease());
           }
           break;
       }
@@ -296,6 +319,12 @@ void WaveShaperDSP::ProcessBlock(sample** inputs, sample** outputs, int nOutputs
 
     *out1 = result[0];
     *out2 = result[0];
+
+    vNoize.tint = (vessl::noiseTint::type)mNoiseTint;
+    vNoizeShaperMixer.master = mVolume;
+    auto& out = vMainSignal.tick(mSignalDT);
+    result[0] = out[0];
+    result[1] = out[1];
   }
 
   mShaperMapValue = mNoizeShaperLeft->getLastMapValue();
@@ -303,16 +332,20 @@ void WaveShaperDSP::ProcessBlock(sample** inputs, sample** outputs, int nOutputs
 
 void WaveShaperDSP::SetWavetables(Minim::MultiChannelBuffer& buffer)
 {
-  mNoizeShaperLeft->getWavetable().setWaveform(buffer.getChannel(0), buffer.getBufferSize());
-  if (buffer.getChannelCount() == 1)
+  const float* left = buffer.getChannel(0);
+  const float* right = buffer.getChannelCount() > 1 ? buffer.getChannel(1) : left;
+  const int size = buffer.getBufferSize();
+
+  mNoizeShaperLeft->getWavetable().setWaveform(left, size);
+  mNoizeShaperRight->getWavetable().setWaveform(right, size);
+
+  for (int i = 0; i < size; ++i)
   {
-    mNoizeShaperRight->getWavetable().setWaveform(buffer.getChannel(0), buffer.getBufferSize());
+    mBufferLeft.set(i, left[i]);
+    mBufferRight.set(i, right[i]);
   }
-  else
-  {
-    mNoizeShaperRight->getWavetable().setWaveform(buffer.getChannel(1), buffer.getBufferSize());
-  }
-  mShaperSize = buffer.getBufferSize();
+
+  mShaperSize = size;
 }
 
 #pragma endregion

@@ -92,6 +92,7 @@ WaveShaper::WaveShaper(const InstanceInfo& instanceInfo)
     GetParam(kEnvRelease)->InitDouble("Release", kEnvReleaseDefault, kEnvReleaseMin, kEnvReleaseMax, kSecondsStep, kSecondsLabel, IParam::kFlagsNone, "ADSR");
   }
 
+  mBuffer.setBufferSize(BUFFER_SIZE);
   mFileLoader.Load(SND_01_ID, SND_01_FN, mBuffer);
 
 #if IPLUG_DSP
